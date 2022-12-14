@@ -27,11 +27,12 @@ public abstract class DownloadTask {
 
     protected volatile int downloadStatus = DOWNLOAD_UNINITIALIZED;
 
-    /**
-     * 在内部开启一个子线程开始下载
-     */
     private Thread task;
 
+    /**
+     * 在内部开启一个子线程开始下载
+     * TODO: 该函数内部耦合度过高，逻辑过于复杂，待简化
+     */
     public void startDownload(DownloadParams params) {
         if (task != null) {
             throw new IllegalStateException("正常情况下，该task应该为null。" +
@@ -52,7 +53,7 @@ public abstract class DownloadTask {
                 }
                 while (downloadStatus == DOWNLOAD_PAUSE) {
                 }
-                if (params.threadOn) {
+                if (params.multiThreadOn) {
                     // 多线程请求章节内容
                     for (Volume volume : novel.volumeList) {
                         for (Chapter chapter : volume.chapterList) {
@@ -65,14 +66,14 @@ public abstract class DownloadTask {
                 for (Volume volume : novel.volumeList) {
                     String volumeTitle = volume.title;
                     for (Chapter chapter : volume.chapterList) {
-                        if (!params.threadOn) {
+                        if (!params.multiThreadOn) {
                             chapter.content = getChapterContent(params.novelId, chapter.chapId);
                         }
                         if (isFinish()) {
                             task = null;
                             return;
                         }
-                        while (downloadStatus == DOWNLOAD_PAUSE || (params.threadOn
+                        while (downloadStatus == DOWNLOAD_PAUSE || (params.multiThreadOn
                                 && chapter.content == null)) {
                         }
                         // 在这里完成数据的写入
@@ -139,8 +140,22 @@ public abstract class DownloadTask {
                 downloadStatus == DOWNLOAD_STOP;
     }
 
-    public int getStatusCode() {
-        return downloadStatus;
+    public String getStatusMsg() {
+        switch (downloadStatus) {
+            case DOWNLOAD_UNINITIALIZED:
+                return "Download uninitialized";
+            case DOWNLOAD_PAUSE:
+                return "Download pause";
+            case DOWNLOAD_FAILED:
+                return "Download failed";
+            case DOWNLOAD_SUCCESS:
+                return "Download success";
+            case DOWNLOAD_STOP:
+                return "Download stop";
+            case DOWNLOADING:
+                return "Downloading";
+        }
+        throw new IllegalStateException("未知status");
     }
 
     protected void writeChapTitle(BufferedWriter writer, String volumeTitle, String chapTitle) throws IOException {
@@ -150,4 +165,14 @@ public abstract class DownloadTask {
     protected void writeChapContent(BufferedWriter writer, String chapContent) throws IOException {
         writer.write("\t" + chapContent.strip() + "\n");
     }
+
+    /**
+     * 等待下载任务结束，下载成功返回true，否则返回false
+     */
+    public boolean waitFinished() {
+        while (!isFinish()) {
+        }
+        return downloadStatus == DOWNLOAD_SUCCESS;
+    }
+
 }

@@ -1,0 +1,14 @@
+org\anvei\novel\api\sfacg\ChapList$Chapter.class
+org\anvei\novel\api\sfacg\ChapList.class
+org\anvei\novel\api\sfacg\ChapList$Data.class
+org\anvei\novel\api\sfacg\ChapContent.class
+org\anvei\novel\download\HbookerDownloadTask.class
+org\anvei\novel\api\HbookerAPI.class
+org\anvei\novel\api\sfacg\ChapList$Volume.class
+org\anvei\novel\api\sfacg\ChapContent$Status.class
+org\anvei\novel\api\sfacg\ChapContent$TsukkomiType.class
+org\anvei\novel\NovelSource.class
+org\anvei\novel\api\sfacg\ChapContent$Expand.class
+org\anvei\novel\api\sfacg\ChapList$Status.class
+org\anvei\novel\api\SfacgAPI.class
+org\anvei\novel\api\sfacg\ChapContent$Data.class

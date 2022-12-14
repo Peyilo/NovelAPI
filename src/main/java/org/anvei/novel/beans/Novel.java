@@ -1,6 +1,6 @@
 package org.anvei.novel.beans;
 
-import org.anvei.novel.SourceIdentifier;
+import org.anvei.novel.NovelSource;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +18,6 @@ public abstract class Novel {
 
     public abstract boolean hasMultiVolume();                   // 该网站小说是否具有分卷
 
-    public abstract SourceIdentifier getSourceIdentifier();     // 获取小说网站表示
+    public abstract NovelSource getSourceIdentifier();     // 获取小说网站表示
 
 }

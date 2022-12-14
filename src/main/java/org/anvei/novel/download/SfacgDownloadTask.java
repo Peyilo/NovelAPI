@@ -1,11 +1,11 @@
 package org.anvei.novel.download;
 
-import org.anvei.novel.SourceIdentifier;
+import org.anvei.novel.NovelSource;
 import org.anvei.novel.beans.Chapter;
 import org.anvei.novel.beans.Novel;
 import org.anvei.novel.beans.Volume;
-import org.anvei.novel.sfacg.SfacgAPI;
-import org.anvei.novel.sfacg.gson.ChapList;
+import org.anvei.novel.api.SfacgAPI;
+import org.anvei.novel.api.sfacg.ChapList;
 
 import java.io.IOException;
 
@@ -20,8 +20,8 @@ public class SfacgDownloadTask extends DownloadTask {
             }
 
             @Override
-            public SourceIdentifier getSourceIdentifier() {
-                return SourceIdentifier.Sfacg;
+            public NovelSource getSourceIdentifier() {
+                return NovelSource.Sfacg;
             }
         };
         try {

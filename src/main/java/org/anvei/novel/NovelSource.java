@@ -1,8 +1,9 @@
 package org.anvei.novel;
 
-public enum SourceIdentifier {
+// 书源
+public enum NovelSource {
     Native,
     Unknown,
     Sfacg,
-    Ciweimao
+    Hbooker
 }

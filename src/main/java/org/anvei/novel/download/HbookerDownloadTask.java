@@ -2,7 +2,7 @@ package org.anvei.novel.download;
 
 import org.anvei.novel.beans.Novel;
 
-public class CiweimaoDownloadTask extends DownloadTask {
+public class HbookerDownloadTask extends DownloadTask {
 
     @Override
     public Novel getNovel(long novelId) {

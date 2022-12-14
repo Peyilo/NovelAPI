@@ -12,6 +12,7 @@ public class DownloadParams {
 
     public long outTime = -1;       // 超时时间
 
-    public boolean threadOn = false;// 是否启用多线程下载、该选项对服务器造成的压力比较大，但是下载速度非常快
+    // 是否启用多线程下载、该选项对服务器造成的压力比较大，但是下载速度非常快
+    public boolean multiThreadOn = false;
 
 }

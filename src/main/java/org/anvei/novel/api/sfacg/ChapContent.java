@@ -1,4 +1,4 @@
-package org.anvei.novel.sfacg.gson;
+package org.anvei.novel.api.sfacg;
 
 import java.util.List;
 

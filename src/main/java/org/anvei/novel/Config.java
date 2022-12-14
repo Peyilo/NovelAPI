@@ -1,5 +1,7 @@
 package org.anvei.novel;
 
+import com.google.gson.Gson;
+
 public class Config {
 
     private static Runnable initConfigTask;
@@ -12,4 +14,16 @@ public class Config {
         return initConfigTask;
     }
 
+    private volatile static Gson gson;
+
+    public static Gson getGson() {
+        if (gson == null) {
+            synchronized (Gson.class) {
+                if (gson == null) {
+                    gson = new Gson();
+                }
+            }
+        }
+        return gson;
+    }
 }

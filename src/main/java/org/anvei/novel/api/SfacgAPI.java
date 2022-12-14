@@ -1,30 +1,18 @@
-package org.anvei.novel.sfacg;
+package org.anvei.novel.api;
 
-import com.google.gson.Gson;
-import org.anvei.novel.sfacg.gson.ChapContent;
-import org.anvei.novel.sfacg.gson.ChapList;
+import org.anvei.novel.api.sfacg.ChapContent;
+import org.anvei.novel.api.sfacg.ChapList;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
 import java.io.IOException;
 
+import static org.anvei.novel.Config.getGson;
+
 public class SfacgAPI {
 
     private static final String API = "https://api.sfacg.com";              // SFACG的IOS、Android查询API
     private static final String WeChatAPI = "https://minipapi.sfacg.com";   // 微信小程序API
-
-    private volatile static Gson gson;
-
-    private static Gson getGson() {
-        if (gson == null) {
-            synchronized (Gson.class) {
-                if (gson == null) {
-                    gson = new Gson();
-                }
-            }
-        }
-        return gson;
-    }
 
     /**
      * 获取小说章节列表信息
@@ -52,6 +40,13 @@ public class SfacgAPI {
                 .get();
         String text = document.body().text();
         return getGson().fromJson(text, ChapContent.class);
+    }
+
+    /**
+     * 模拟登录功能
+     */
+    public static void login(String username, String password) {
+
     }
 
 }
