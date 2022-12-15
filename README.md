@@ -75,6 +75,12 @@ boolean saveRes = api.saveVipChapPic(novelId, chapId, file);
 
 该函数只能保存图片形式的vip章节，而且图片非常模糊
 
+6. 关键字搜索
+
+```java
+SearchResultJson searchResultJson = api.search("来自深渊");
+```
+
 #### 其他文档
 
 其他文档在doc文件夹下

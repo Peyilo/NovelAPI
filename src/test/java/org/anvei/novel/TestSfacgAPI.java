@@ -4,6 +4,7 @@ import org.anvei.novel.api.SfacgAPI;
 import org.anvei.novel.api.sfacg.AccountJson;
 import org.anvei.novel.api.sfacg.ChapContentJson;
 import org.anvei.novel.api.sfacg.ChapListJson;
+import org.anvei.novel.api.sfacg.SearchResultJson;
 import org.anvei.novel.download.DownloadParams;
 import org.anvei.novel.download.DownloadTask;
 import org.anvei.novel.download.DownloadTasks;
@@ -81,6 +82,7 @@ public class TestSfacgAPI {
         SfacgAPI api = new SfacgAPI(username, password);
         boolean loginRes = api.login();
         System.out.println("loginRes: " + loginRes);
+        System.out.println(api.getCookies());
         AccountJson info = api.getAccountJson();
         System.out.println(TextUtils.toPrettyFormat(info));
     }
@@ -106,4 +108,11 @@ public class TestSfacgAPI {
         }
     }
 
+    @Test
+    public void test7() throws IOException {
+        SfacgAPI api = new SfacgAPI();
+        SearchResultJson searchResultJson = api.search("来自深渊", 0, 20);
+        System.out.println(TextUtils.toPrettyFormat(searchResultJson));
+        System.out.println("Search result count: " + searchResultJson.data.novels.size());
+    }
 }

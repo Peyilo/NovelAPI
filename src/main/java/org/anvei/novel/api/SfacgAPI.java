@@ -1,9 +1,6 @@
 package org.anvei.novel.api;
 
-import org.anvei.novel.api.sfacg.AccountJson;
-import org.anvei.novel.api.sfacg.ChapContentJson;
-import org.anvei.novel.api.sfacg.ChapListJson;
-import org.anvei.novel.api.sfacg.LoginJson;
+import org.anvei.novel.api.sfacg.*;
 import org.anvei.novel.utils.FileUtils;
 import org.jsoup.Connection;
 
@@ -96,6 +93,7 @@ public class SfacgAPI {
 
     private static final String SFCommunity = ".SFCommunity";
     private static final String sessionMinip = "session_Minip1";
+    private static final String sessionAPP = "session_APP";
 
     /**
      * 模拟登录功能，登录之后，会保存相应的cookies
@@ -180,4 +178,46 @@ public class SfacgAPI {
     public void setTimeout(int timeout) {
         this.timeout = timeout;
     }
+
+    private static final int DEFAULT_SEARCH_SIZE = 12;          // 默认一页查询十二条数据
+
+    public SearchResultJson search(String key) throws IOException {
+        return search(key, 0);
+    }
+
+    public SearchResultJson search(String key, int page) throws IOException {
+        return search(key, page, DEFAULT_SEARCH_SIZE);
+    }
+
+    /**
+     * @param key 搜索关键字
+     * @param page 页码（从0开始）
+     * @param size 单页的小说个数，最大值为20
+     */
+    public SearchResultJson search(String key, int page, int size) throws IOException {
+        SearchParams params = new SearchParams(key);
+        params.page = page;
+        params.size = size;
+        return search(params);
+    }
+
+    public SearchResultJson search(SearchParams params) throws IOException {
+        Connection connection = getConnection(API + "/search/novels/result/new")
+                .header("Authorization", "Basic YXBpdXNlcjozcyMxLXl0NmUqQWN2QHFlcg==")
+                .header("User-Agent", "boluobao/4.9.16(iOS;16.1)/appStore/")
+                .data("expand", "typeName,tags,intro,latestchaptitle,latestchapintro,authorname,authorName,sysTags")
+                .data("page", params.page + "")
+                .data("size", params.size + "")
+                .data("q", params.key)
+                .data("sort", params.sort.name())
+                .data("systagids", "");
+        if (params.timeout > 0) {
+            connection.timeout(timeout);
+        } else if (timeout > 0) {
+            connection.timeout(timeout);
+        }
+        String json = connection.get().body().text();
+        return getGson().fromJson(json, SearchResultJson.class);
+    }
+
 }
