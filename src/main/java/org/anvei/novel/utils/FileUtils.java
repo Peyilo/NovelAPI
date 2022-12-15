@@ -1,7 +1,6 @@
 package org.anvei.novel.utils;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 
 public class FileUtils {
 
@@ -25,6 +24,29 @@ public class FileUtils {
         }
         file.createNewFile();
         return file;
+    }
+
+    public static boolean writeFile(File file, InputStream is) {
+        FileOutputStream os = null;
+        try {
+            os = new FileOutputStream(file);
+            byte[] bytes = new byte[1024];
+            while (is.read(bytes) != -1) {
+                os.write(bytes);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        // 关闭输出流
+        if (os != null) {
+            try {
+                os.close();
+                return true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
     }
 
 }

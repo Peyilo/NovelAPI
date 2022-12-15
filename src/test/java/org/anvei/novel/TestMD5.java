@@ -1,13 +1,13 @@
 package org.anvei.novel;
 
-import org.anvei.novel.utils.Security;
+import org.anvei.novel.utils.SecurityUtils;
 import org.junit.Test;
 
 public class TestMD5 {
 
     @Test
     public void test1() {
-        String md5Str = Security.getMD5Str("Hello");
+        String md5Str = SecurityUtils.getMD5Str("Hello");
         assert md5Str != null;
         System.out.println("length = " + md5Str.length());
         System.out.println(md5Str);
@@ -24,7 +24,7 @@ public class TestMD5 {
         String timestamp = "1670818946877";
         String devicetoken = "6F9A9878637A4A24BB424B589E29C9F3";
         String sign = "201785D699B7FF8511E642883593F8AF";
-        System.out.println(Security.getMD5Str(timestamp, devicetoken));
+        System.out.println(SecurityUtils.getMD5Str(timestamp, devicetoken));
     }
 
 }

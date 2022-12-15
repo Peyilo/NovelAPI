@@ -18,6 +18,6 @@ public abstract class Novel {
 
     public abstract boolean hasMultiVolume();                   // 该网站小说是否具有分卷
 
-    public abstract NovelSource getSourceIdentifier();     // 获取小说网站表示
+    public abstract NovelSource getNovelSource();     // 获取小说网站表示
 
 }

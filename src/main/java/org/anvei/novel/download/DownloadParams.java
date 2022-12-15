@@ -10,7 +10,7 @@ public class DownloadParams {
 
     public String fileName;         // 文件名称
 
-    public long outTime = -1;       // 超时时间
+    public long timeout = -1;       // 超时时间
 
     // 是否启用多线程下载、该选项对服务器造成的压力比较大，但是下载速度非常快
     public boolean multiThreadOn = false;

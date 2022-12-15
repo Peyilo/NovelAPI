@@ -5,7 +5,7 @@ import org.anvei.novel.beans.Chapter;
 import org.anvei.novel.beans.Novel;
 import org.anvei.novel.beans.Volume;
 import org.anvei.novel.api.SfacgAPI;
-import org.anvei.novel.api.sfacg.ChapList;
+import org.anvei.novel.api.sfacg.ChapListJson;
 
 import java.io.IOException;
 
@@ -20,18 +20,18 @@ public class SfacgDownloadTask extends DownloadTask {
             }
 
             @Override
-            public NovelSource getSourceIdentifier() {
+            public NovelSource getNovelSource() {
                 return NovelSource.Sfacg;
             }
         };
         try {
-            ChapList chapList = SfacgAPI.getChapList(novelId);
-            for (int i = 0; i < chapList.getVolumeList().size(); i++) {
+            ChapListJson chapListJson = new SfacgAPI().getChapListJson(novelId);
+            for (int i = 0; i < chapListJson.getVolumeList().size(); i++) {
                 Volume v1 = new Volume();
-                ChapList.Volume v2 = chapList.getVolumeList().get(i);
+                ChapListJson.Volume v2 = chapListJson.getVolumeList().get(i);
                 v1.volumeOrder = i + 1;
                 v1.title = v2.title;
-                for (ChapList.Chapter chapter : v2.chapterList) {
+                for (ChapListJson.Chapter chapter : v2.chapterList) {
                     Chapter c = new Chapter();
                     c.title = chapter.title;
                     c.chapOrder = chapter.chapOrder;
@@ -51,7 +51,7 @@ public class SfacgDownloadTask extends DownloadTask {
     public String getChapterContent(long novelId, long chapId) {
         String s = null;
         try {
-            s = SfacgAPI.getChapContent(chapId).getContent();
+            s = new SfacgAPI().getChapContentJson(chapId).getContent();
         } catch (IOException e) {
             e.printStackTrace();
         }

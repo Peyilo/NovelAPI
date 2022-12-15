@@ -2,7 +2,7 @@ package org.anvei.novel.api.sfacg;
 
 import java.util.List;
 
-public class ChapContent {
+public class ChapContentJson {
 
     public Status   status;
     public Data     data;

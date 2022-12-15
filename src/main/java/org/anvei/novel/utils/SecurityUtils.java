@@ -3,7 +3,7 @@ package org.anvei.novel.utils;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public class Security {
+public class SecurityUtils {
 
     public static String getMD5Str(String... str) {
         try {

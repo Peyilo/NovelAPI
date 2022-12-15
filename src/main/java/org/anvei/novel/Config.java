@@ -14,16 +14,4 @@ public class Config {
         return initConfigTask;
     }
 
-    private volatile static Gson gson;
-
-    public static Gson getGson() {
-        if (gson == null) {
-            synchronized (Gson.class) {
-                if (gson == null) {
-                    gson = new Gson();
-                }
-            }
-        }
-        return gson;
-    }
 }

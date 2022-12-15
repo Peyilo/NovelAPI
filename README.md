@@ -42,6 +42,39 @@ System.out.println("Status message: " + downloadTask.getStatusMsg());
 
 #### SfacgAPI的使用
 
+1. 模拟登录
+
+```java
+SfacgAPI api = new SfacgAPI("username", "password");
+api.login();
+```
+
+2. 获取当前账号详细信息
+
+```java
+AccountJson info = api.getAccountJson();
+```
+
+3. 获取章节列表信息
+
+```java
+ChapListJson chapListJson = api.getChapListJson(591785);
+```
+
+4. 获取章节内容（文字，不支持vip章节）
+
+```java
+ChapContentJson chapContentJson = api.getChapContentJson(6742076);
+```
+
+5. 保存vip章节（图片）
+
+```java
+boolean saveRes = api.saveVipChapPic(novelId, chapId, file);
+```
+
+该函数只能保存图片形式的vip章节，而且图片非常模糊
+
 #### 其他文档
 
 其他文档在doc文件夹下

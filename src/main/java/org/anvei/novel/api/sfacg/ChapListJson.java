@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-public class ChapList {
+public class ChapListJson {
 
     public Status   status;
     public Data     data;

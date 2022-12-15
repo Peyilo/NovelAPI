@@ -4,7 +4,7 @@ import org.anvei.novel.beans.Chapter;
 import org.anvei.novel.beans.Novel;
 import org.anvei.novel.beans.Volume;
 import org.anvei.novel.utils.FileUtils;
-import org.anvei.novel.utils.Security;
+import org.anvei.novel.utils.SecurityUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -43,7 +43,7 @@ public abstract class DownloadTask {
             try {
                 Novel novel = getNovel(params.novelId);
                 if (params.fileName == null) {
-                    params.fileName = Security.getMD5Str(params.novelId + "");
+                    params.fileName = SecurityUtils.getMD5Str(params.novelId + ".txt");
                 }
                 File file = FileUtils.createFile(params.parent, params.fileName);
                 BufferedWriter writer = new BufferedWriter(new FileWriter(file));
@@ -90,11 +90,11 @@ public abstract class DownloadTask {
             task = null;
         });
         // 计时部分
-        if (params.outTime > 0) {
+        if (params.timeout > 0) {
             long start = System.currentTimeMillis();
             new Thread(() -> {
                 long time;
-                long outTime = params.outTime;
+                long outTime = params.timeout;
                 while (true) {
                     time = System.currentTimeMillis() - start;
                     if (time > outTime) {
