@@ -5,5 +5,6 @@ public enum NovelSource {
     Native,
     Unknown,
     Sfacg,
-    Hbooker
+    Hbooker,
+    Qidian
 }
