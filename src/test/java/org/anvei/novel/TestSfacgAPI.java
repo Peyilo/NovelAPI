@@ -21,6 +21,9 @@ import static org.anvei.novel.api.sfacg.ChapListJson.Volume;
 
 public class TestSfacgAPI {
 
+    private final String username = "";
+    private final String password = "";
+
     @Test
     public void test1() throws IOException {
         ChapListJson novelDirs = new SfacgAPI().getChapListJson(591785);
@@ -51,11 +54,11 @@ public class TestSfacgAPI {
         params.parent = new File("E:\\Text File\\Novel");
         params.novelId = 233718;
         params.fileName = "咸鱼少女拒绝翻身.txt";
-//        long start = System.currentTimeMillis();
-//        downloadTask.startDownload(params);
-//        boolean res = downloadTask.waitFinished();
-//        System.out.println("download success: " + res);
-//        System.out.println((System.currentTimeMillis() - start) / 1000f + "s");
+        long start = System.currentTimeMillis();
+        downloadTask.startDownload(params);
+        boolean res = downloadTask.waitFinished();
+        System.out.println("download success: " + res);
+        System.out.println((System.currentTimeMillis() - start) / 1000f + "s");
     }
 
     @Test
@@ -66,21 +69,18 @@ public class TestSfacgAPI {
         params.novelId = 233718;
         params.fileName = "咸鱼少女拒绝翻身.txt";
         params.multiThreadOn = true;
-//        long start = System.currentTimeMillis();
-//        downloadTask.startDownload(params);
-//        boolean res = downloadTask.waitFinished();
-//        System.out.println("download success: " + res);
-//        System.out.println("status message: " + downloadTask.getStatusMsg());
-//        System.out.println((System.currentTimeMillis() - start) / 1000f + "s");
+        long start = System.currentTimeMillis();
+        downloadTask.startDownload(params);
+        boolean res = downloadTask.waitFinished();
+        System.out.println("download success: " + res);
+        System.out.println("status message: " + downloadTask.getStatusMsg());
+        System.out.println((System.currentTimeMillis() - start) / 1000f + "s");
     }
-
-    private final String username = "username";
-    private final String password = "password";
 
     @Test
     public void test5() throws IOException {
         SfacgAPI api = new SfacgAPI(username, password);
-        boolean loginRes = api.login();
+        boolean loginRes = api.loginMini();
         System.out.println("loginRes: " + loginRes);
         System.out.println(api.getCookies());
         AccountJson info = api.getAccountJson();
@@ -90,7 +90,7 @@ public class TestSfacgAPI {
     @Test
     public void test6() throws IOException {
         SfacgAPI api = new SfacgAPI(username, password);
-        boolean loginRes = api.login();
+        boolean loginRes = api.loginMini();
         if (loginRes) {
             ChapListJson chapListJson = api.getChapListJson(591785);
             List<Volume> volumeList = chapListJson.getVolumeList();
@@ -114,5 +114,11 @@ public class TestSfacgAPI {
         SearchResultJson searchResultJson = api.search("来自深渊", 0, 20);
         System.out.println(TextUtils.toPrettyFormat(searchResultJson));
         System.out.println("Search result count: " + searchResultJson.data.novels.size());
+    }
+
+    @Test
+    public void test8() {
+        boolean res = new SfacgAPI(username, password).loginMini();
+        System.out.println(res);
     }
 }

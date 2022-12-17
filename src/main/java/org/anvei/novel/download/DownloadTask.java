@@ -42,8 +42,10 @@ public abstract class DownloadTask {
         task = new Thread(() -> {
             try {
                 Novel novel = getNovel(params.novelId);
-                if (params.fileName == null) {
+                if (params.fileName == null) {                      // 如果没配置文件名，就以novelId的md5值作为文件名
                     params.fileName = SecurityUtils.getMD5Str(params.novelId + ".txt");
+                } else if (!params.fileName.contains(".")) {        // 如果没加后缀，就添加上后缀.txt
+                    params.fileName += ".txt";
                 }
                 File file = FileUtils.createFile(params.parent, params.fileName);
                 BufferedWriter writer = new BufferedWriter(new FileWriter(file));
@@ -51,8 +53,7 @@ public abstract class DownloadTask {
                     task = null;
                     return;
                 }
-                while (downloadStatus == DOWNLOAD_PAUSE) {
-                }
+                while (downloadStatus == DOWNLOAD_PAUSE);
                 if (params.multiThreadOn) {
                     // 多线程请求章节内容
                     for (Volume volume : novel.volumeList) {
@@ -74,8 +75,7 @@ public abstract class DownloadTask {
                             return;
                         }
                         while (downloadStatus == DOWNLOAD_PAUSE || (params.multiThreadOn
-                                && chapter.content == null)) {
-                        }
+                                && chapter.content == null));
                         // 在这里完成数据的写入
                         writeChapTitle(writer, volumeTitle, chapter.title);
                         writeChapContent(writer, chapter.content);
@@ -170,8 +170,7 @@ public abstract class DownloadTask {
      * 等待下载任务结束，下载成功返回true，否则返回false
      */
     public boolean waitFinished() {
-        while (!isFinish()) {
-        }
+        while (!isFinish());
         return downloadStatus == DOWNLOAD_SUCCESS;
     }
 

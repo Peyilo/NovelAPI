@@ -46,7 +46,7 @@ System.out.println("Status message: " + downloadTask.getStatusMsg());
 
 ```java
 SfacgAPI api = new SfacgAPI("username", "password");
-api.login();
+api.loginMini();			// 登录sfacg微信小程序
 ```
 
 2. 获取当前账号详细信息
@@ -84,3 +84,5 @@ SearchResultJson searchResultJson = api.search("来自深渊");
 #### 其他文档
 
 其他文档在doc文件夹下
+
+ 
