@@ -2,6 +2,9 @@ package org.anvei.novel;
 
 import org.anvei.novel.api.HbookerAPI;
 import org.anvei.novel.api.hbooker.*;
+import org.anvei.novel.download.DownloadParams;
+import org.anvei.novel.download.DownloadTask;
+import org.anvei.novel.download.DownloadTasks;
 import org.anvei.novel.utils.NetUtils;
 import org.anvei.novel.utils.SecurityUtils;
 import org.jsoup.Connection;
@@ -135,5 +138,22 @@ ZWM1YjJhZWYzMzEzMmUyNGExNDk1NzlmZWIwZDdhNzk2N2E5NTJmNGRmZjJhNzU2OWY3MTkxZDQ0ZDJl
         getChapterCmd.setAccessible(true);
         ChapterCommandJson chapterCmd = (ChapterCommandJson)getChapterCmd.invoke(api, 108494568);
         System.out.println(toPrettyFormat(chapterCmd));
+    }
+
+    @Test
+    public void testDownloadTask() {
+        DownloadTask downloadTask = DownloadTasks.getDownloadTask(NovelSource.Hbooker);
+        DownloadParams params = new DownloadParams();
+        params.parent = new File("E:\\Text File\\Novel");
+        params.novelId = 100307425;
+        params.multiThreadOn = true;
+        downloadTask.startDownload(params);
+        boolean res = downloadTask.waitFinished();
+        if (res) {
+            System.out.println("下载成功! 一共" + downloadTask.getCharCount() + "字, " +
+                    downloadTask.getChapterCount() + "章");
+        } else {
+            System.out.println("下载失败!");
+        }
     }
 }

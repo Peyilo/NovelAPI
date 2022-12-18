@@ -13,21 +13,22 @@ import java.io.IOException;
 
 public abstract class DownloadTask {
 
-    public static final int DOWNLOAD_UNINITIALIZED = 0x00;              // 未初始化
+    public enum Status {
+        UNINITIALIZED,
+        FAILED,
+        SUCCESS,
+        PAUSE,
+        STOP,
+        DOWNLOADING
+    }
 
-    public static final int DOWNLOAD_FAILED = 0x01;                     // 下载失败
-
-    public static final int DOWNLOAD_SUCCESS = 0x02;                    // 下载成功
-
-    public static final int DOWNLOAD_PAUSE = 0x03;                      // 下载暂停
-
-    public static final int DOWNLOAD_STOP = 0x04;                       // 下载停止
-
-    public static final int DOWNLOADING = 0x05;                         // 下载中
-
-    protected volatile int downloadStatus = DOWNLOAD_UNINITIALIZED;
+    protected volatile Status downloadStatus = Status.UNINITIALIZED;
 
     private Thread task;
+
+    private int charCount = 0;
+
+    private int chapterCount = 0;
 
     /**
      * 在内部开启一个子线程开始下载
@@ -38,12 +39,16 @@ public abstract class DownloadTask {
             throw new IllegalStateException("正常情况下，该task应该为null。" +
                     "只有当上个任务还未执行完成或者未调用stop()就再次就调用startDownload()，才会抛出该异常.");
         }
-        downloadStatus = DOWNLOADING;
+        downloadStatus = Status.DOWNLOADING;
+        charCount = 0;
+        chapterCount = 0;
         task = new Thread(() -> {
             try {
+                boolean needRename = false;
                 Novel novel = getNovel(params.novelId);
                 if (params.fileName == null) {                      // 如果没配置文件名，就以novelId的md5值作为文件名
                     params.fileName = SecurityUtils.getMD5Str(params.novelId + ".txt");
+                    needRename = true;
                 } else if (!params.fileName.contains(".")) {        // 如果没加后缀，就添加上后缀.txt
                     params.fileName += ".txt";
                 }
@@ -53,7 +58,7 @@ public abstract class DownloadTask {
                     task = null;
                     return;
                 }
-                while (downloadStatus == DOWNLOAD_PAUSE);
+                while (downloadStatus == Status.PAUSE);
                 if (params.multiThreadOn) {
                     // 多线程请求章节内容
                     for (Volume volume : novel.volumeList) {
@@ -74,17 +79,37 @@ public abstract class DownloadTask {
                             task = null;
                             return;
                         }
-                        while (downloadStatus == DOWNLOAD_PAUSE || (params.multiThreadOn
+                        while (downloadStatus == Status.PAUSE || (params.multiThreadOn
                                 && chapter.content == null));
                         // 在这里完成数据的写入
                         writeChapTitle(writer, volumeTitle, chapter.title);
                         writeChapContent(writer, chapter.content);
+                        if (volumeTitle != null) {
+                            charCount += volumeTitle.length();
+                        }
+                        if (chapter.title != null) {
+                            charCount += chapter.title.length();
+                        }
+                        if (chapter.content != null) {
+                            charCount += chapter.content.length();
+                        }
+                        chapterCount++;
                     }
                 }
-
-                downloadStatus = DOWNLOAD_SUCCESS;
+                writer.close();
+                if (needRename) {
+                    params.fileName = novel.title + " " + novel.author;
+                    File rename;
+                    if (params.parent != null) {
+                        rename = new File(params.parent, params.fileName + ".txt");
+                    } else {
+                        rename = new File(params.fileName + ".txt");
+                    }
+                    file.renameTo(FileUtils.getFile(rename));
+                }
+                downloadStatus = Status.SUCCESS;
             } catch (IOException e) {
-                downloadStatus = DOWNLOAD_FAILED;
+                downloadStatus = Status.FAILED;
                 e.printStackTrace();
             }
             task = null;
@@ -98,7 +123,7 @@ public abstract class DownloadTask {
                 while (true) {
                     time = System.currentTimeMillis() - start;
                     if (time > outTime) {
-                        downloadStatus = DOWNLOAD_FAILED;
+                        downloadStatus = Status.FAILED;
                         break;
                     }
                     if (!isFinish()) {
@@ -112,58 +137,52 @@ public abstract class DownloadTask {
         task.start();
     }
 
+    // 在该函数内保存章节、分卷信息，别在该函数内请求章节内容
     public abstract Novel getNovel(long novelId);
 
+    // 请求章节内容
     public abstract String getChapterContent(long novelId, long chapId);
 
     public void pause() {
-        if (downloadStatus == DOWNLOADING) {
-            downloadStatus = DOWNLOAD_PAUSE;
+        if (downloadStatus == Status.DOWNLOADING) {
+            downloadStatus = Status.PAUSE;
         }
     }
 
     public void restart() {
-        if (downloadStatus == DOWNLOAD_PAUSE) {
-            downloadStatus = DOWNLOADING;
+        if (downloadStatus == Status.PAUSE) {
+            downloadStatus = Status.DOWNLOADING;
         }
     }
 
     public void stop() {
-        if (downloadStatus != DOWNLOAD_SUCCESS && downloadStatus != DOWNLOAD_UNINITIALIZED) {
-            downloadStatus = DOWNLOAD_STOP;
+        if (downloadStatus != Status.SUCCESS && downloadStatus != Status.UNINITIALIZED) {
+            downloadStatus = Status.STOP;
         }
     }
 
     public boolean isFinish() {
-        return downloadStatus == DOWNLOAD_FAILED ||
-                downloadStatus == DOWNLOAD_SUCCESS ||
-                downloadStatus == DOWNLOAD_STOP;
+        return downloadStatus == Status.FAILED ||
+                downloadStatus == Status.SUCCESS ||
+                downloadStatus == Status.STOP;
     }
 
-    public String getStatusMsg() {
-        switch (downloadStatus) {
-            case DOWNLOAD_UNINITIALIZED:
-                return "Download uninitialized";
-            case DOWNLOAD_PAUSE:
-                return "Download pause";
-            case DOWNLOAD_FAILED:
-                return "Download failed";
-            case DOWNLOAD_SUCCESS:
-                return "Download success";
-            case DOWNLOAD_STOP:
-                return "Download stop";
-            case DOWNLOADING:
-                return "Downloading";
-        }
-        throw new IllegalStateException("未知status");
+    public Status getStatusMsg() {
+        return downloadStatus;
     }
 
     protected void writeChapTitle(BufferedWriter writer, String volumeTitle, String chapTitle) throws IOException {
+        if (volumeTitle == null) {
+            volumeTitle = "";
+        }
         writer.write("\n" + volumeTitle + " " + chapTitle + "\n");
     }
 
     protected void writeChapContent(BufferedWriter writer, String chapContent) throws IOException {
-        writer.write("\t" + chapContent.strip() + "\n");
+        if (chapContent == null) {
+            chapContent = "";
+        }
+        writer.write(chapContent + "\n");
     }
 
     /**
@@ -171,7 +190,14 @@ public abstract class DownloadTask {
      */
     public boolean waitFinished() {
         while (!isFinish());
-        return downloadStatus == DOWNLOAD_SUCCESS;
+        return downloadStatus == Status.SUCCESS;
     }
 
+    public int getCharCount() {
+        return charCount;
+    }
+
+    public int getChapterCount() {
+        return chapterCount;
+    }
 }
