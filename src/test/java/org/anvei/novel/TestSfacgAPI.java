@@ -10,6 +10,7 @@ import org.anvei.novel.download.DownloadTask;
 import org.anvei.novel.download.DownloadTasks;
 import org.anvei.novel.utils.FileUtils;
 import org.anvei.novel.utils.TextUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -21,8 +22,19 @@ import static org.anvei.novel.api.sfacg.ChapListJson.Volume;
 
 public class TestSfacgAPI {
 
-    private final String username = "";
-    private final String password = "";
+    private String username;
+    private String password;
+
+    @Before
+    public void init() throws IOException {
+        Config.initAppConfig();
+        try {
+            username = Config.getSfacgConfig(Config.KEY_SFACG_USERNAME);
+            password = Config.getSfacgConfig(Config.KEY_SFACG_PASSWORD);
+        } catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
     @Test
     public void test1() throws IOException {

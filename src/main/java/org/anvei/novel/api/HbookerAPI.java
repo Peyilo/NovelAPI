@@ -1,16 +1,12 @@
 package org.anvei.novel.api;
 
+import org.anvei.novel.Config;
 import org.anvei.novel.api.hbooker.*;
 import org.anvei.novel.utils.NetUtils;
+import static org.anvei.novel.api.hbooker.HbookerSecurity.*;
 import org.jsoup.Connection;
 
-import javax.crypto.Cipher;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.util.Base64;
 
 import static org.anvei.novel.utils.TextUtils.getGson;
 
@@ -18,71 +14,39 @@ public class HbookerAPI {
 
     public static final String API = "https://app.hbooker.com";
 
-    public static final String decryptKey = "zG2nSeEfSHfvTCHy5LCcqtBbQehKNLXn";
-
     private static final int SUCCESS_CODE = 100000;
 
     private static final int DEFAULT_SEARCH_COUNT = 10;
 
-    // 默认APP版本
-    private static final String DEFAULT_APP_VERSION = "3.0.303";
     // APP版本，该值关系到获取章节列表信息是否成功
-    private String appVersion = DEFAULT_APP_VERSION;
+    private final String appVersion;
+    private final String deviceToken;
 
-    private String username;
-    private String password;
+    private final String account;
+    private final String loginToken;
 
     private int timeout = -1;
 
-    public HbookerAPI() {
+    public HbookerAPI() throws IOException {
+        account = Config.getHbookerConfig(Config.KEY_HBOOKER_ACCOUNT);
+        loginToken = Config.getHbookerConfig(Config.KEY_HBOOKER_LOGIN_TOKEN);
+        appVersion = Config.getHbookerConfig(Config.KEY_HBOOKER_APP_VERSION);
+        deviceToken = Config.getHbookerConfig(Config.KEY_HBOOKER_DEVICE_TOKEN);
     }
 
-    public HbookerAPI(String username, String password) {
-        this.username = username;
-        this.password = password;
-    }
-
-    /**
-     * 解密
-     */
-    public static String decrypt(String src) {
-        return decrypt(src.getBytes());
-    }
-
-    public static String decrypt(byte[] src) {
-        return decrypt(src, decryptKey);
-    }
-
-    private static String decrypt(byte[] src, String key) {
-        try
-        {
-            Cipher cipher = Cipher.getInstance("AES/CBC/NoPadding");
-            MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-            sha256.update(key.getBytes(StandardCharsets.UTF_8));
-            byte[] keyBytes = sha256.digest();
-            SecretKeySpec secretKeySpec = new SecretKeySpec(keyBytes, "AES");
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(new byte[16]);
-            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
-
-            byte[] res = cipher.doFinal(Base64.getDecoder().decode(src));
-
-            return new String(res).trim().replace("\\\\u", "\\u");
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            return "";
-        }
+    public HbookerAPI(String account, String loginToken) throws IOException {
+        this.account = account;
+        this.loginToken = loginToken;
+        appVersion = Config.getHbookerConfig(Config.KEY_HBOOKER_APP_VERSION);
+        deviceToken = Config.getHbookerConfig(Config.KEY_HBOOKER_DEVICE_TOKEN);
     }
 
     private Connection getConnection(String suffix) {
         return NetUtils.getConnection(API + suffix)
-                .header("Host", "app.hbooker.com")
-                .header("User-Agent", "HappyBook/3.0.3 (iPad; iOS 16.1; Scale/2.00)")
-                .header("Connection", "keep-alive")
-                .data("account", "%E4%B9%A6%E5%AE%A2831585069584")
-                .data("device_token", "iPad-F726E4CC-4FA9-432B-8338-E461F93AC7D8")
-                .data("login_token", "84550c4165e022cafa1bb91bef6d9382")
-                .data("app_version", appVersion);
+                .data("account", account)
+                .data("app_version", appVersion)
+                .data("device_token", deviceToken)
+                .data("login_token", loginToken);
     }
 
     public SearchResultJson search(String key) throws IOException {
@@ -106,12 +70,12 @@ public class HbookerAPI {
     }
 
 
-    public String getUsername() {
-        return username;
+    public String getAccount() {
+        return account;
     }
 
-    public String getPassword() {
-        return password;
+    public String getLoginToken() {
+        return loginToken;
     }
 
     public int getTimeout() {
@@ -152,18 +116,10 @@ public class HbookerAPI {
         return getGson().fromJson(json, ChapListInfoJson.class);
     }
 
-    public String getAppVersion() {
-        return appVersion;
-    }
-
-    public void setAppVersion(String appVersion) {
-        this.appVersion = appVersion;
-    }
-
-    public ChapterCommandJson getChapterCmdS(long chapterId) throws IOException {
-        Connection connection = getConnection("/chapter/get_chapter_cmd_s")
+    private ChapterCommandJson getChapterCmd(long chapterId) throws IOException {
+        Connection connection = getConnection("/chapter/get_chapter_cmd")
                 .data("chapter_id", chapterId + "")
-                .data("token", "9edc47755b8160e5a071b4fa717f22fa32");
+                .header("User-Agent", "Android  com.kuangxiangciweimao.novel  2.9.291, Google, Pixel5");
         if (timeout > 0) {
             connection.timeout(timeout);
         }
@@ -172,13 +128,13 @@ public class HbookerAPI {
     }
 
     public ChapterInfoJson getChapterInfoJson(long chapterId) throws IOException {
-        ChapterCommandJson chapterCmdS = getChapterCmdS(chapterId);
-        if (chapterCmdS.code != SUCCESS_CODE)
+        ChapterCommandJson chapterCommand = getChapterCmd(chapterId);
+        if (chapterCommand.code != SUCCESS_CODE)
             return null;
-        String command = chapterCmdS.data.command;
+        String command = chapterCommand.data.command;
         Connection connection = getConnection("/chapter/get_cpt_ifm")
-                .data("chapter_command", command)
-                .data("chapter_id", chapterId + "");
+                .data("chapter_id", chapterId + "")
+                .data("chapter_command", command);
         if (timeout > 0) {
             connection.timeout(timeout);
         }
@@ -186,14 +142,9 @@ public class HbookerAPI {
         ChapterInfoJson chapterInfoJson = getGson().fromJson(json, ChapterInfoJson.class);
         if (chapterInfoJson.data != null && chapterInfoJson.data.chapterInfo != null
                 && chapterInfoJson.data.chapterInfo.txtContent != null) {
-            chapterInfoJson.data.chapterInfo.txtContent = decryptTxtContent(chapterInfoJson.data.chapterInfo.txtContent, command);
+            // 对章节内容再次解码
+            chapterInfoJson.data.chapterInfo.txtContent = decrypt(chapterInfoJson.data.chapterInfo.txtContent.getBytes(), command);
         }
         return chapterInfoJson;
     }
-
-    // 对章节内容进行解码
-    private String decryptTxtContent(String content, String command) {
-        return decrypt(content);
-    }
-
 }

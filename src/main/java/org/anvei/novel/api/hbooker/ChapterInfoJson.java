@@ -2,6 +2,8 @@ package org.anvei.novel.api.hbooker;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 public class ChapterInfoJson {
 
     public int code;
@@ -14,7 +16,7 @@ public class ChapterInfoJson {
     }
 
     @SerializedName("scroll_chests")
-    public DivisionInfoJson.ScrollChest scrollChest;
+    public List<DivisionInfoJson.ScrollChest> scrollChests;
 
     public static class ChapterInfo {
         @SerializedName("chapter_id")

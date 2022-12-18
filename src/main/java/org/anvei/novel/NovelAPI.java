@@ -1,19 +1,16 @@
 package org.anvei.novel;
 
+import java.io.IOException;
+
 public class NovelAPI {
 
-    public NovelAPI() {
-        initApi();
-    }
-
-    private void initApi() {
-        if (Config.getInitConfigTask() != null) {
-            Config.getInitConfigTask().run();
+    public static void main(String[] args) {
+        try {
+            Config.initAppConfig();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-    }
-
-    public void destroy() {
-        Config.setInitConfigTask(null);
+        System.out.println("欢迎使用NovelAPI!");
     }
 
 }
