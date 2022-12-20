@@ -27,9 +27,17 @@ public class TestHbookerAPI {
 
     public static final String API = "https://app.hbooker.com";
 
+    private HbookerAPI api;
+
     @Before
     public void init() throws IOException {
-        Config.initAppConfig();;
+        Config.initAppConfig();
+        Config.setHbookerConfigFilePath(TestUtils.HbookerConfigPath);
+        String account = Config.getHbookerConfig(Config.KEY_HBOOKER_ACCOUNT);
+        String loginToken = Config.getHbookerConfig(Config.KEY_HBOOKER_LOGIN_TOKEN);
+        String deviceToken = Config.getHbookerConfig(Config.KEY_HBOOKER_DEVICE_TOKEN);
+        String appVersion = Config.getHbookerConfig(Config.KEY_HBOOKER_APP_VERSION);
+        api = new HbookerAPI(account, loginToken, deviceToken, appVersion);
     }
 
     @Test
@@ -64,7 +72,6 @@ public class TestHbookerAPI {
 
     @Test
     public void encode() throws Exception {
-        HbookerAPI api = new HbookerAPI();
         SearchResultJson searchResultJson = api.search("橘子");
         System.out.println(toPrettyFormat(searchResultJson));
     }
@@ -80,7 +87,6 @@ public class TestHbookerAPI {
 
     @Test
     public void test5() throws IOException {
-        HbookerAPI api = new HbookerAPI();
         BookInfoJson bookInfoJson = api.getBookInfoJson(100307425);
         System.out.println(toPrettyFormat(bookInfoJson));
     }
@@ -95,7 +101,6 @@ public class TestHbookerAPI {
 
     @Test
     public void test7() throws IOException {
-        HbookerAPI api = new HbookerAPI();
         DivisionInfoJson divisionInfoJson = api.getDivisionInfoJson(100307425);
         // System.out.println(toPrettyFormat(divisionInfoJson));
         if (divisionInfoJson.data.divisionList.size() > 0) {
@@ -118,7 +123,6 @@ ZWM1YjJhZWYzMzEzMmUyNGExNDk1NzlmZWIwZDdhNzk2N2E5NTJmNGRmZjJhNzU2OWY3MTkxZDQ0ZDJl
 
     @Test
     public void test8() throws IOException {
-        HbookerAPI api = new HbookerAPI();
         System.out.println(toPrettyFormat(api.getChapterInfoJson(108494568)));
     }
 
@@ -131,8 +135,7 @@ ZWM1YjJhZWYzMzEzMmUyNGExNDk1NzlmZWIwZDdhNzk2N2E5NTJmNGRmZjJhNzU2OWY3MTkxZDQ0ZDJl
     }
 
     @Test
-    public void test10() throws IOException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        HbookerAPI api = new HbookerAPI();
+    public void testGetChapterCommand() throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Class<HbookerAPI> apiClass = HbookerAPI.class;
         Method getChapterCmd = apiClass.getDeclaredMethod("getChapterCmd", long.class);
         getChapterCmd.setAccessible(true);
@@ -147,11 +150,13 @@ ZWM1YjJhZWYzMzEzMmUyNGExNDk1NzlmZWIwZDdhNzk2N2E5NTJmNGRmZjJhNzU2OWY3MTkxZDQ0ZDJl
         params.parent = new File("E:\\Text File\\Novel");
         params.novelId = 100307425;
         params.multiThreadOn = true;
+        params.api = api;
         downloadTask.startDownload(params);
         boolean res = downloadTask.waitFinished();
         if (res) {
             System.out.println("下载成功! 一共" + downloadTask.getCharCount() + "字, " +
                     downloadTask.getChapterCount() + "章");
+            System.out.println("下载文件路径: " + downloadTask.getTargetFile().getAbsolutePath());
         } else {
             System.out.println("下载失败!");
         }

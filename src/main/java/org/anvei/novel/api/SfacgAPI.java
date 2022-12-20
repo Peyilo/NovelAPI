@@ -18,7 +18,7 @@ import static org.anvei.novel.utils.TextUtils.getGson;
  * 菠萝包轻小说  (官网 https://www.sfacg.com/) <br/>
  * 该类提供了菠萝包轻小说网的登录、搜索、账号、小说相关API    <br/>
  */
-public class SfacgAPI {
+public class SfacgAPI implements API {
 
     private static final String API = "https://api.sfacg.com";              // SFACG的iOS、Android查询API
 

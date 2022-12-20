@@ -1,30 +1,85 @@
 package org.anvei.novel;
 
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 
 public class Config {
 
-    private static final String APP_CONFIG_FILE_PATH = "src/main/resources/app.properties";
-    private static final String KEY_HBOOKER_CONFIG_FILE_PATH = "hbooker_config_file_path";
-    private static final String KEY_SFACG_CONFIG_FILE_PATH = "sfacg_config_file_path";
+    private static final String APP_CONFIG_FILE_PATH = "app.properties";
+    public static final String KEY_HBOOKER_CONFIG_FILE_PATH = "hbooker_config_file_path";
+    public static final String KEY_SFACG_CONFIG_FILE_PATH = "sfacg_config_file_path";
 
     public static String HBOOKER_CONFIG_FILE_PATH;
 
     public static String SFACG_CONFIG_FILE_PATH;
 
+    private static Properties appProperties;
+
     public static void initAppConfig() throws IOException {
-        Properties properties = new Properties();
-        properties.load(new FileReader(APP_CONFIG_FILE_PATH, StandardCharsets.UTF_8));
-        String s1 = properties.getProperty(KEY_HBOOKER_CONFIG_FILE_PATH);
+        appProperties = new Properties();
+        InputStream is = Config.class.getClassLoader().getResourceAsStream(APP_CONFIG_FILE_PATH);
+        if (is == null) {
+            throw new IllegalStateException("Unknown state");
+        }
+        appProperties.load(is);
+        is.close();
+        String s1 = appProperties.getProperty(KEY_HBOOKER_CONFIG_FILE_PATH);
         if (s1 != null && !s1.equals("")) {
             HBOOKER_CONFIG_FILE_PATH = s1;
         }
-        String s2 = properties.getProperty(KEY_SFACG_CONFIG_FILE_PATH);
+        String s2 = appProperties.getProperty(KEY_SFACG_CONFIG_FILE_PATH);
         if (s2 != null && !s2.equals("")) {
             SFACG_CONFIG_FILE_PATH = s2;
+        }
+    }
+
+    // 配置app.properties
+    public static void setAppConfig(String key, String value) {
+        if (isAppConfigKey(key)) {
+            appProperties.setProperty(key, value);
+            if (key.equals(KEY_HBOOKER_CONFIG_FILE_PATH)) {
+                setHbookerConfigFilePath(value);
+            } else if (key.equals(KEY_SFACG_CONFIG_FILE_PATH)) {
+                setSfacgConfigFilePath(value);
+            }
+        }
+    }
+
+    public static String getHbookerConfigFilePath() {
+        return HBOOKER_CONFIG_FILE_PATH;
+    }
+
+    public static void setHbookerConfigFilePath(String hbookerConfigFilePath) {
+        HBOOKER_CONFIG_FILE_PATH = hbookerConfigFilePath;
+    }
+
+    public static String getSfacgConfigFilePath() {
+        return SFACG_CONFIG_FILE_PATH;
+    }
+
+    public static void setSfacgConfigFilePath(String sfacgConfigFilePath) {
+        SFACG_CONFIG_FILE_PATH = sfacgConfigFilePath;
+    }
+
+    private static boolean isAppConfigKey(String key) {
+        return key.equals(KEY_HBOOKER_CONFIG_FILE_PATH) || key.equals(KEY_SFACG_CONFIG_FILE_PATH);
+    }
+
+    public static boolean saveAppConfig() {
+        URL url = Config.class.getResource(APP_CONFIG_FILE_PATH);
+        if (url == null) {
+            return false;
+        }
+        try {
+            FileOutputStream os = new FileOutputStream(new File(url.toURI()));
+            appProperties.store(os, "");
+            return true;
+        } catch (URISyntaxException | IOException e) {
+            e.printStackTrace();
+            return false;
         }
     }
 

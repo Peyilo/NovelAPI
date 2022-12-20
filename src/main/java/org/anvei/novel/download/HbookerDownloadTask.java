@@ -20,7 +20,11 @@ public class HbookerDownloadTask extends DownloadTask {
         if (api == null) {
             synchronized (HbookerAPI.class) {
                 if (api == null) {
-                    api = new HbookerAPI();
+                    if (downloadParams.api != null) {
+                        api = (HbookerAPI) downloadParams.api;
+                    } else {
+                        api = new HbookerAPI(downloadParams.account, downloadParams.certificate);
+                    }
                 }
             }
         }

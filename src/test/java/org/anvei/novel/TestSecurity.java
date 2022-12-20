@@ -1,8 +1,9 @@
 package org.anvei.novel;
 
-import static org.anvei.novel.utils.SecurityUtils.getMD5Str;
-
+import org.anvei.novel.api.hbooker.HbookerSecurity;
 import org.junit.Test;
+
+import static org.anvei.novel.utils.SecurityUtils.getMD5Str;
 
 public class TestSecurity {
 
@@ -19,6 +20,14 @@ public class TestSecurity {
     @Test
     public void test2() {
         System.out.println(getMD5Str(nonce + timeStamp + deviceToken + "xw3#a12-x"));
+    }
+
+    @Test
+    public void test3() {
+        String encrypt = HbookerSecurity.encrypt("萝莉");
+        System.out.println(encrypt);
+        String decrypt = HbookerSecurity.decrypt(encrypt);
+        System.out.println(decrypt);
     }
 
 }

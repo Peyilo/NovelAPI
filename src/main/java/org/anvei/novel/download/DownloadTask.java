@@ -30,11 +30,27 @@ public abstract class DownloadTask {
 
     private int chapterCount = 0;
 
+    private File targetFile;                // 最终下载目标文件，内容保存在该文件下
+
+    protected DownloadParams downloadParams;
+
+    public DownloadTask() {
+    }
+
+    public DownloadTask(DownloadParams downloadParams) {
+        this.downloadParams = downloadParams;
+    }
+
+    public void startDownload(DownloadParams downloadParams) {
+        this.downloadParams = downloadParams;
+        startDownload();
+    }
+
     /**
      * 在内部开启一个子线程开始下载
      * TODO: 该函数内部耦合度过高，逻辑过于复杂，待简化
      */
-    public void startDownload(DownloadParams params) {
+    public void startDownload() {
         if (task != null) {
             throw new IllegalStateException("正常情况下，该task应该为null。" +
                     "只有当上个任务还未执行完成或者未调用stop()就再次就调用startDownload()，才会抛出该异常.");
@@ -42,29 +58,30 @@ public abstract class DownloadTask {
         downloadStatus = Status.DOWNLOADING;
         charCount = 0;
         chapterCount = 0;
+        targetFile = null;
         task = new Thread(() -> {
             try {
                 boolean needRename = false;
-                Novel novel = getNovel(params.novelId);
-                if (params.fileName == null) {                      // 如果没配置文件名，就以novelId的md5值作为文件名
-                    params.fileName = SecurityUtils.getMD5Str(params.novelId + ".txt");
+                Novel novel = getNovel(downloadParams.novelId);
+                if (downloadParams.fileName == null) {                      // 如果没配置文件名，就以novelId的md5值作为文件名
+                    downloadParams.fileName = SecurityUtils.getMD5Str(downloadParams.novelId + ".txt");
                     needRename = true;
-                } else if (!params.fileName.contains(".")) {        // 如果没加后缀，就添加上后缀.txt
-                    params.fileName += ".txt";
+                } else if (!downloadParams.fileName.contains(".")) {        // 如果没加后缀，就添加上后缀.txt
+                    downloadParams.fileName += ".txt";
                 }
-                File file = FileUtils.createFile(params.parent, params.fileName);
+                File file = FileUtils.createFile(downloadParams.parent, downloadParams.fileName);
                 BufferedWriter writer = new BufferedWriter(new FileWriter(file));
                 if (isFinish()) {
                     task = null;
                     return;
                 }
                 while (downloadStatus == Status.PAUSE);
-                if (params.multiThreadOn) {
+                if (downloadParams.multiThreadOn) {
                     // 多线程请求章节内容
                     for (Volume volume : novel.volumeList) {
                         for (Chapter chapter : volume.chapterList) {
                             new Thread(() -> {
-                                chapter.content = getChapterContent(params.novelId, chapter.chapId);
+                                chapter.content = getChapterContent(downloadParams.novelId, chapter.chapId);
                             }).start();
                         }
                     }
@@ -72,14 +89,14 @@ public abstract class DownloadTask {
                 for (Volume volume : novel.volumeList) {
                     String volumeTitle = volume.title;
                     for (Chapter chapter : volume.chapterList) {
-                        if (!params.multiThreadOn) {
-                            chapter.content = getChapterContent(params.novelId, chapter.chapId);
+                        if (!downloadParams.multiThreadOn) {
+                            chapter.content = getChapterContent(downloadParams.novelId, chapter.chapId);
                         }
                         if (isFinish()) {
                             task = null;
                             return;
                         }
-                        while (downloadStatus == Status.PAUSE || (params.multiThreadOn
+                        while (downloadStatus == Status.PAUSE || (downloadParams.multiThreadOn
                                 && chapter.content == null));
                         // 在这里完成数据的写入
                         writeChapTitle(writer, volumeTitle, chapter.title);
@@ -98,14 +115,17 @@ public abstract class DownloadTask {
                 }
                 writer.close();
                 if (needRename) {
-                    params.fileName = novel.title + " " + novel.author;
+                    downloadParams.fileName = novel.title + " " + novel.author;
                     File rename;
-                    if (params.parent != null) {
-                        rename = new File(params.parent, params.fileName + ".txt");
+                    if (downloadParams.parent != null) {
+                        rename = new File(downloadParams.parent, downloadParams.fileName + ".txt");
                     } else {
-                        rename = new File(params.fileName + ".txt");
+                        rename = new File(downloadParams.fileName + ".txt");
                     }
-                    file.renameTo(FileUtils.getFile(rename));
+                    targetFile = FileUtils.getFile(rename);
+                    file.renameTo(targetFile);
+                } else {
+                    targetFile = file;
                 }
                 downloadStatus = Status.SUCCESS;
             } catch (IOException e) {
@@ -115,11 +135,11 @@ public abstract class DownloadTask {
             task = null;
         });
         // 计时部分
-        if (params.timeout > 0) {
+        if (downloadParams.timeout > 0) {
             long start = System.currentTimeMillis();
             new Thread(() -> {
                 long time;
-                long outTime = params.timeout;
+                long outTime = downloadParams.timeout;
                 while (true) {
                     time = System.currentTimeMillis() - start;
                     if (time > outTime) {
@@ -199,5 +219,12 @@ public abstract class DownloadTask {
 
     public int getChapterCount() {
         return chapterCount;
+    }
+
+    /**
+     * 获取最终下载位置
+     */
+    public File getTargetFile() {
+        return targetFile;
     }
 }

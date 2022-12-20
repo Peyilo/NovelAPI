@@ -1,16 +1,15 @@
 package org.anvei.novel.api;
 
-import org.anvei.novel.Config;
 import org.anvei.novel.api.hbooker.*;
 import org.anvei.novel.utils.NetUtils;
-import static org.anvei.novel.api.hbooker.HbookerSecurity.*;
 import org.jsoup.Connection;
 
 import java.io.IOException;
 
+import static org.anvei.novel.api.hbooker.HbookerSecurity.decrypt;
 import static org.anvei.novel.utils.TextUtils.getGson;
 
-public class HbookerAPI {
+public class HbookerAPI implements API {
 
     public static final String API = "https://app.hbooker.com";
 
@@ -18,27 +17,31 @@ public class HbookerAPI {
 
     private static final int DEFAULT_SEARCH_COUNT = 10;
 
-    // APP版本，该值关系到获取章节列表信息是否成功
-    private final String appVersion;
-    private final String deviceToken;
+    private static final String DEFAULT_APP_VERSION = "3.0.303";
+    private static final String DEFAULT_DEVICE_TOKEN = "iPad-F726E4CC-4FA9-432B-8338-E461F93AC7D8";
 
-    private final String account;
-    private final String loginToken;
+    // APP版本，该值关系到获取章节列表信息是否成功
+    private String appVersion = DEFAULT_APP_VERSION;
+    private String deviceToken = DEFAULT_DEVICE_TOKEN;
+
+    private String account;
+    private String loginToken;
 
     private int timeout = -1;
 
-    public HbookerAPI() throws IOException {
-        account = Config.getHbookerConfig(Config.KEY_HBOOKER_ACCOUNT);
-        loginToken = Config.getHbookerConfig(Config.KEY_HBOOKER_LOGIN_TOKEN);
-        appVersion = Config.getHbookerConfig(Config.KEY_HBOOKER_APP_VERSION);
-        deviceToken = Config.getHbookerConfig(Config.KEY_HBOOKER_DEVICE_TOKEN);
+    public HbookerAPI(){
     }
 
-    public HbookerAPI(String account, String loginToken) throws IOException {
+    public HbookerAPI(String account, String loginToken) {
         this.account = account;
         this.loginToken = loginToken;
-        appVersion = Config.getHbookerConfig(Config.KEY_HBOOKER_APP_VERSION);
-        deviceToken = Config.getHbookerConfig(Config.KEY_HBOOKER_DEVICE_TOKEN);
+    }
+
+    public HbookerAPI(String account, String loginToken, String deviceToken, String appVersion) {
+        this.appVersion = appVersion;
+        this.deviceToken = deviceToken;
+        this.account = account;
+        this.loginToken = loginToken;
     }
 
     private Connection getConnection(String suffix) {
@@ -86,6 +89,14 @@ public class HbookerAPI {
         this.timeout = timeout;
     }
 
+    public void setAppVersion(String appVersion) {
+        this.appVersion = appVersion;
+    }
+
+    public void setDeviceToken(String deviceToken) {
+        this.deviceToken = deviceToken;
+    }
+
     public BookInfoJson getBookInfoJson(long bookId) throws IOException {
         Connection connection = getConnection("/book/get_info_by_id")
                 .data("book_id", bookId + "");
@@ -119,7 +130,7 @@ public class HbookerAPI {
     private ChapterCommandJson getChapterCmd(long chapterId) throws IOException {
         Connection connection = getConnection("/chapter/get_chapter_cmd")
                 .data("chapter_id", chapterId + "")
-                .header("User-Agent", "Android  com.kuangxiangciweimao.novel  2.9.291, Google, Pixel5");
+                .header("User-Agent", "Android  com.kuangxiangciweimao.novel  2.9.293,HONOR, TNNH-AN00, 29, 10");
         if (timeout > 0) {
             connection.timeout(timeout);
         }

@@ -1,4 +1,4 @@
 package org.anvei.novel.api;
 
-public class QidianAPI {
+public class QidianAPI implements API {
 }

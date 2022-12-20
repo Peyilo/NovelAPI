@@ -1,5 +1,7 @@
 package org.anvei.novel.download;
 
+import org.anvei.novel.api.API;
+
 import java.io.File;
 
 public class DownloadParams {
@@ -14,5 +16,11 @@ public class DownloadParams {
 
     // 是否启用多线程下载、该选项对服务器造成的压力比较大，但是下载速度非常快
     public boolean multiThreadOn = false;
+
+    public String account;          // 账号
+
+    public String certificate;      // 登录凭证
+
+    public API api;                 // 如果配置了该属性，account、certificate会被忽略
 
 }

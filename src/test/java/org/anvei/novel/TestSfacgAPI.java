@@ -28,6 +28,7 @@ public class TestSfacgAPI {
     @Before
     public void init() throws IOException {
         Config.initAppConfig();
+        Config.setSfacgConfigFilePath(TestUtils.SfacgConfigPath);
         try {
             username = Config.getSfacgConfig(Config.KEY_SFACG_USERNAME);
             password = Config.getSfacgConfig(Config.KEY_SFACG_PASSWORD);
