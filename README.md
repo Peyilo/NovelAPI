@@ -23,22 +23,22 @@ DownloadTask downloadTask = DownloadTasks.getDownloadTask(NovelSource.Sfacg);
 ```java
 DownloadParams params = new DownloadParams();
 // 文件将保存在该目录下
-        params.parent = new File("E:\\Text File\\Novel");
+params.parent = new File("E:\\Text File\\Novel");
 // 文件名
-        params.fileName = "咸鱼少女拒绝翻身.txt";
+params.fileName = "咸鱼少女拒绝翻身.txt";
 // sfacg小说ID
-        params.novelId = 233718;
-// 多线程并行请求章节内容,开启后下载速度较快，百万字小说只需4s
-        params.multiThreadOn = true;									
+params.novelId = 233718;
+// 多线程并行请求章节内容,开启后下载速度较快，但是对服务器造成的压力较大
+params.multiThreadOn = true;									
 ```
 
 - 下载小说
 
 ```java
 downloadTask.startDownload(params);			// 开始下载
-        boolean res = downloadTask.waitFinished();	// 等待下载任务结束
-        System.out.println("Download success: " + res);
-        System.out.println("Status message: " + downloadTask.getStatusMsg());
+boolean res = downloadTask.waitFinished();	// 等待下载任务结束
+System.out.println("Download success: " + res);
+System.out.println("Status message: " + downloadTask.getStatusMsg());
 ```
 
 #### SfacgAPI的使用
@@ -47,7 +47,7 @@ downloadTask.startDownload(params);			// 开始下载
 
 ```java
 SfacgAPI api = new SfacgAPI("username", "password");
-        api.loginMini();			// 登录sfacg微信小程序
+api.login();
 ```
 
 2. 获取当前账号详细信息
@@ -62,21 +62,13 @@ AccountJson info = api.getAccountJson();
 ChapListJson chapListJson = api.getChapListJson(591785);
 ```
 
-4. 获取章节内容（文字，不支持vip章节）
+4. 获取章节内容（支持vip章节：需要登录账号并且账号已经购买过vip章节）
 
 ```java
 ChapContentJson chapContentJson = api.getChapContentJson(6742076);
 ```
 
-5. 保存vip章节（图片）
-
-```java
-boolean saveRes = api.saveVipChapPic(novelId, chapId, file);
-```
-
-该函数只能保存图片形式的vip章节，而且图片非常模糊
-
-6. 关键字搜索
+5. 关键字搜索
 
 ```java
 SearchResultJson searchResultJson = api.search("来自深渊");
