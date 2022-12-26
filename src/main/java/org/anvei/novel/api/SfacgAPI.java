@@ -33,7 +33,7 @@ public class SfacgAPI implements API {
     public static final int SUCCESS_CODE = 200;
 
     // MD5加盐，由apk文件解压获取libsfdata.so库文件，再对so文件的汇编指令流分析，
-    // 最后可以在MD5::MD5(std::string const&)函数下得出该盐值
+    // 最后可以在MD5::MD5(std::string const&)函数下追踪内存时可以获取该盐值
     private static final String salt = "FMLxgOdsfxmN!Dt4";
 
     public enum LoginStatus {
@@ -102,8 +102,7 @@ public class SfacgAPI implements API {
     }
 
     /**
-     * 利用微信小程序API，获取章节内容信息（iOS、Android端获取章节内容的API被加密过了，暂时无法使用其获取信息）
-     * 该方法无法获取vip章节内容
+     * 获取章节内容信息
      */
     public ChapContentJson getChapContentJson(long chapId) throws IOException {
         Connection connection = getConnection(API + "/Chaps/" + chapId)
@@ -230,6 +229,10 @@ public class SfacgAPI implements API {
 
     public void setTimeout(int timeout) {
         this.timeout = timeout;
+    }
+
+    public void setUserAgent(String userAgent) {
+        this.userAgent = userAgent;
     }
 
     public SearchResultJson search(String key) throws IOException {
