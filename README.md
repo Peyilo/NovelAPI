@@ -3,8 +3,8 @@
 
 #### API支持
 
-1. Sfacg（菠萝包轻小说）
-1. Hbooker（刺猬猫小说）
+1. SfacgAPP（菠萝包轻小说）
+1. HbookerAPP（刺猬猫阅读）
 
 #### 关于jar包
 

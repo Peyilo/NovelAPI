@@ -1,7 +1,9 @@
 package org.anvei.novel.api;
 
-/**
- * 标记接口
- */
+import org.anvei.novel.NovelSource;
+
 public interface API {
+
+    NovelSource getNovelSource();
+
 }

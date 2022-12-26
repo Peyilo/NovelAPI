@@ -1,5 +1,6 @@
 package org.anvei.novel.api;
 
+import org.anvei.novel.NovelSource;
 import org.anvei.novel.api.hbooker.*;
 import org.anvei.novel.utils.NetUtils;
 import org.jsoup.Connection;
@@ -11,7 +12,7 @@ import static org.anvei.novel.utils.TextUtils.getGson;
 
 public class HbookerAPI implements API {
 
-    public static final String API = "https://app.hbooker.com";
+    private static final String API = "https://app.hbooker.com";
 
     private static final int SUCCESS_CODE = 100000;
 
@@ -157,5 +158,10 @@ public class HbookerAPI implements API {
             chapterInfoJson.data.chapterInfo.txtContent = decrypt(chapterInfoJson.data.chapterInfo.txtContent.getBytes(), command);
         }
         return chapterInfoJson;
+    }
+
+    @Override
+    public NovelSource getNovelSource() {
+        return NovelSource.HbookerAPP;
     }
 }

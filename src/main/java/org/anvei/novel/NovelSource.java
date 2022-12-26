@@ -4,7 +4,8 @@ package org.anvei.novel;
 public enum NovelSource {
     Native,
     Unknown,
-    Sfacg,
-    Hbooker,
-    Qidian
+    SfacgAPP,
+    HbookerAPP,
+    Qidian,
+    BiqumuWebsite
 }

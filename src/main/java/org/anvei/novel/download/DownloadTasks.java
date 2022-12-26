@@ -6,9 +6,9 @@ public class DownloadTasks {
 
     public static DownloadTask getDownloadTask(NovelSource novelSource) {
         switch (novelSource) {
-            case Sfacg:
+            case SfacgAPP:
                 return new SfacgDownloadTask();
-            case Hbooker:
+            case HbookerAPP:
                 return new HbookerDownloadTask();
             default:
                 throw new IllegalArgumentException("暂时不支持该种类型的下载任务!");

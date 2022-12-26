@@ -1,5 +1,6 @@
 package org.anvei.novel.api;
 
+import org.anvei.novel.NovelSource;
 import org.anvei.novel.api.sfacg.*;
 import org.anvei.novel.utils.SecurityUtils;
 import org.jsoup.Connection;
@@ -269,4 +270,8 @@ public class SfacgAPI implements API {
         return getGson().fromJson(json, SearchResultJson.class);
     }
 
+    @Override
+    public NovelSource getNovelSource() {
+        return NovelSource.SfacgAPP;
+    }
 }

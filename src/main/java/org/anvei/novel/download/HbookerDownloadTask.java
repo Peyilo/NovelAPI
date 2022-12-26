@@ -41,7 +41,7 @@ public class HbookerDownloadTask extends DownloadTask {
 
             @Override
             public NovelSource getNovelSource() {
-                return NovelSource.Hbooker;
+                return NovelSource.HbookerAPP;
             }
         };
         HbookerAPI api;

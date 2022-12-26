@@ -145,7 +145,7 @@ ZWM1YjJhZWYzMzEzMmUyNGExNDk1NzlmZWIwZDdhNzk2N2E5NTJmNGRmZjJhNzU2OWY3MTkxZDQ0ZDJl
 
     @Test
     public void testDownloadTask() {
-        DownloadTask downloadTask = DownloadTasks.getDownloadTask(NovelSource.Hbooker);
+        DownloadTask downloadTask = DownloadTasks.getDownloadTask(NovelSource.HbookerAPP);
         DownloadParams params = new DownloadParams();
         params.parent = new File("E:\\Text File\\Novel");
         params.novelId = 100307425;

@@ -21,7 +21,7 @@ public class SfacgDownloadTask extends DownloadTask {
 
             @Override
             public NovelSource getNovelSource() {
-                return NovelSource.Sfacg;
+                return NovelSource.SfacgAPP;
             }
         };
         try {
