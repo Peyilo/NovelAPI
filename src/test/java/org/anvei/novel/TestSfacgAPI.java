@@ -1,7 +1,10 @@
 package org.anvei.novel;
 
 import org.anvei.novel.api.SfacgAPI;
+import org.anvei.novel.api.sfacg.AccountJson;
+import org.anvei.novel.api.sfacg.ChapContentJson;
 import org.anvei.novel.api.sfacg.ChapListJson;
+import org.anvei.novel.utils.TextUtils;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,6 +41,24 @@ public class TestSfacgAPI {
             for (Chapter chapter : chapterList) {
                 System.out.println("\t" + chapter.title);
             }
+        }
+    }
+
+    @Test
+    public void test2() throws IOException {
+        SfacgAPI api = new SfacgAPI(username, password);
+        boolean login = api.login();
+        if (login) {
+            System.out.println("登录成功");
+            AccountJson accountJson = api.getAccountJson();
+            System.out.println(TextUtils.toPrettyFormat(accountJson));
+            ChapListJson chapListJson = api.getChapListJson(591785);
+            List<ChapListJson.Volume> volumeList = chapListJson.getVolumeList();
+            ChapListJson.Volume volume = volumeList.get(volumeList.size() - 1);
+            List<ChapListJson.Chapter> chapterList = volume.chapterList;
+            ChapListJson.Chapter chapter = chapterList.get(chapterList.size() - 2);
+            ChapContentJson chapContentJson = api.getChapContentJson(chapter.chapId);
+            System.out.println(TextUtils.toPrettyFormat(chapContentJson));
         }
     }
 

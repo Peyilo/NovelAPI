@@ -29,9 +29,11 @@ public class SfacgAPI implements API {
     private static final String DEFAULT_DEVICE_TOKEN = "6F9A9878-637A-4A24-BB42-4B589E29C9F3";
     private static final String DEFAULT_USER_AGENT = "boluobao/4.9.16(iOS;16.1)/appStore/6F9A9878-637A-4A24-BB42-4B589E29C9F3";
 
-    private static final int SUCCESS_CODE = 200;
+    public static final int SUCCESS_CODE = 200;
 
-    private static final String salt = "xw3#a12-x";             // MD5加盐 "td9#Kn_p7vUw"
+    // MD5加盐，由apk文件解压获取libsfdata.so库文件，再对so文件的汇编指令流分析，
+    // 最后可以在MD5::MD5(std::string const&)函数下得出该盐值
+    private static final String salt = "FMLxgOdsfxmN!Dt4";
 
     public enum LoginStatus {
         UnLogin,                // 未登录
@@ -74,10 +76,10 @@ public class SfacgAPI implements API {
         String nonce = UUID.randomUUID().toString();
         String timestamp = System.currentTimeMillis() + "";
         String sign = SecurityUtils.getMD5Str(nonce, timestamp, deviceToken, salt);
-        assert sign != null;
         return "nonce=" + nonce + "&timestamp=" + timestamp + "&devicetoken=" + deviceToken
                 + "&sign=" + sign.toUpperCase();
     }
+
     /**
      * 获取小说章节列表信息
      */
@@ -159,9 +161,7 @@ public class SfacgAPI implements API {
         loginStatus = LoginStatus.Login;
         return true;
     }
-    /**
-     * 注销账号
-     */
+
     /**
      * 登出账号: 清空cookies
      */
@@ -194,7 +194,9 @@ public class SfacgAPI implements API {
         return cookies;
     }
 
-    // TODO: 获取账号信息
+    /**
+     * 获取账号信息
+     */
     public AccountJson getAccountJson() throws IOException {
         if (loginStatus == LoginStatus.UnLogin) {
             throw new IllegalStateException("账号未登录!");
