@@ -48,6 +48,10 @@ public class BiqumuAPI implements API {
         return getNovel(API + "/book/" + novelId + "/");
     }
 
+    public NovelBean getNovel(SearchResultBean searchResultBean) throws IOException {
+        return getNovel(API + searchResultBean.url);
+    }
+
     public NovelBean getNovel(String url) throws IOException {
         long startTime = System.currentTimeMillis();
         Document[] pageList = new Document[50];       // 最多支持50 + 1页，即5100章节
@@ -163,6 +167,9 @@ public class BiqumuAPI implements API {
         this.paraSuffix = paraSuffix;
     }
 
+    /**
+     * 根据给定的ChapterBean，获取其章节具体内容
+     */
     public ChapterBean getChapContent(ChapterBean chapterBean) throws IOException {
         String url = API + chapterBean.url;
         StringBuilder builder = new StringBuilder();
@@ -189,6 +196,9 @@ public class BiqumuAPI implements API {
         return chapterBean;
     }
 
+    /**
+     * 根据给定的关键字进行搜索小说
+     */
     public List<SearchResultBean> search(String keyWord) throws IOException {
         Document document = Jsoup.connect(API + "/search.html").header("User-Agent", NetUtils.USER_AGENT_VALUE)
                 .data("s", keyWord)
