@@ -3,8 +3,9 @@
 
 #### API支持
 
-1. SfacgAPP（菠萝包轻小说）
-1. HbookerAPP（刺猬猫阅读）
+1. SfacgAPI-APP（菠萝包轻小说）
+2. HbookerAPI-APP（刺猬猫阅读）
+3. BeqegeAPI-Website（http://www.biqumu.com/）
 
 #### 关于jar包
 
