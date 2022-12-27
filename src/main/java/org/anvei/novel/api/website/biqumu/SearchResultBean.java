@@ -1,4 +1,6 @@
-package org.anvei.novel.api.website.beqege;
+package org.anvei.novel.api.website.biqumu;
+
+import org.anvei.novel.api.website.common.ChapterBean;
 
 public class SearchResultBean {
 

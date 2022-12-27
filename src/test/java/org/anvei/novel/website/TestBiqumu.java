@@ -1,9 +1,9 @@
 package org.anvei.novel.website;
 
 import org.anvei.novel.api.website.BiqumuAPI;
-import org.anvei.novel.api.website.beqege.ChapterBean;
-import org.anvei.novel.api.website.beqege.NovelBean;
-import org.anvei.novel.api.website.beqege.SearchResultBean;
+import org.anvei.novel.api.website.common.ChapterBean;
+import org.anvei.novel.api.website.common.NovelBean;
+import org.anvei.novel.api.website.biqumu.SearchResultBean;
 import org.anvei.novel.utils.TextUtils;
 import org.junit.Test;
 
@@ -16,6 +16,7 @@ public class TestBiqumu {
     public void test1() throws IOException {
         BiqumuAPI api = new BiqumuAPI();
         NovelBean novelBean = api.getNovel(152281);
+        System.out.println(novelBean.url);
         System.out.println(novelBean.author);
         System.out.println(novelBean.novelName);
         System.out.println(novelBean.intro);

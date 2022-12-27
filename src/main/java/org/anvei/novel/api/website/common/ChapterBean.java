@@ -1,4 +1,4 @@
-package org.anvei.novel.api.website.beqege;
+package org.anvei.novel.api.website.common;
 
 public class ChapterBean {
 

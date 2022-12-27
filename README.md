@@ -1,11 +1,12 @@
 ## NovelAPI
-提供常见小说网站的便捷API
+提供常见小说网站以及App的便捷API
 
 #### API支持
 
 1. SfacgAPI-APP（菠萝包轻小说）
 2. HbookerAPI-APP（刺猬猫阅读）
-3. BeqegeAPI-Website（http://www.biqumu.com/）
+3. BiqumuAPI-Website（http://www.biqumu.com/）
+4. _143xsAPI-Website（https://www.147xs.org/）
 
 #### 关于jar包
 

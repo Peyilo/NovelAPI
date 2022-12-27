@@ -109,7 +109,6 @@ public class SfacgAPI implements API {
                 .headers(getHeaders())
                 .header("cookie", getCookieValue())
                 .header("SFSecurity", getSFSecurity(DEFAULT_DEVICE_TOKEN))
-                .header("User-Agent", DEFAULT_USER_AGENT)
                 .data("chapsId", chapId + "")
                 .data("expand", "content,chatlines,tsukkomi,needFireMoney,originNeedFireMoney");
         if (timeout > 0) {

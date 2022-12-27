@@ -2,9 +2,9 @@ package org.anvei.novel.api.website;
 
 import org.anvei.novel.NovelSource;
 import org.anvei.novel.api.API;
-import org.anvei.novel.api.website.beqege.ChapterBean;
-import org.anvei.novel.api.website.beqege.NovelBean;
-import org.anvei.novel.api.website.beqege.SearchResultBean;
+import org.anvei.novel.api.website.common.ChapterBean;
+import org.anvei.novel.api.website.common.NovelBean;
+import org.anvei.novel.api.website.biqumu.SearchResultBean;
 import org.anvei.novel.utils.NetUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -45,27 +45,31 @@ public class BiqumuAPI implements API {
      * 获取小说基本信息、及其目录信息
      */
     public NovelBean getNovel(long novelId) throws IOException {
-        return getNovel(API + "/book/" + novelId + "/");
+        return getNovel("/book/" + novelId + "/");
     }
 
     public NovelBean getNovel(SearchResultBean searchResultBean) throws IOException {
-        return getNovel(API + searchResultBean.url);
+        return getNovel(searchResultBean.url);
     }
 
     public NovelBean getNovel(String url) throws IOException {
         long startTime = System.currentTimeMillis();
+        NovelBean novelBean = new NovelBean(getNovelSource());
+        novelBean.url = url;
+        if (!url.contains(API)) {
+            url = API + url;
+        }
         Document[] pageList = new Document[50];       // 最多支持50 + 1页，即5100章节
         pageReqFinished = 0;
         pageReqIsFinished = false;
         needReq = 0;
-        Document home = Jsoup.connect(url)
-                .header("User-Agent", NetUtils.USER_AGENT_VALUE)
-                .get();
+        Document home = Jsoup.connect(url).header("User-Agent", NetUtils.USER_AGENT_VALUE).get();
         Element body = home.body();
         // 考虑到网络请求速度过于耗时，开启多线程请求其他章节分页
+        final String tempUrl = url;
         new Thread(() -> {
             try {
-                Document document = Jsoup.connect(url + "1/").header("User-Agent", NetUtils.USER_AGENT_VALUE).get();
+                Document document = Jsoup.connect(tempUrl + "1/").header("User-Agent", NetUtils.USER_AGENT_VALUE).get();
                 Elements options = document.select("body > div.container > div:nth-child(2) > div > div:nth-child(4) > select > option");
                 // 只有一页
                 switch (options.size()) {
@@ -101,7 +105,6 @@ public class BiqumuAPI implements API {
                 e.printStackTrace();
             }
         }).start();
-        NovelBean novelBean = new NovelBean();
         novelBean.novelName = body.select("body > div.container > div.row.row-detail > div:nth-child(1) > div > div.info > div.top > h1").text();
         novelBean.author = body.select("body > div.container > div.row.row-detail > div:nth-child(1) > div > div.info > div.top > div > p:nth-child(1)").text().split("：", 2)[1];
         novelBean.intro = body.select("body > div.container > div.row.row-detail > div:nth-child(2) > div > p").text();
