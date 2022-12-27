@@ -8,5 +8,6 @@ public enum NovelSource {
     HbookerAPP,
     Qidian,
     BiqumuWebsite,
-    _143xsWebsite
+    _143xsWebsite,
+    FanqieWebsite
 }

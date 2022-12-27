@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class _147xsAPI implements API {
+public class _147xsWebsiteAPI implements API {
 
     private static final String API = "https://www.147xs.org/";
 
@@ -26,7 +26,7 @@ public class _147xsAPI implements API {
     }
 
     public List<SearchResultBean> search(String keyword) throws IOException {
-        Document document = Jsoup.connect(API + "/search.php").header("User-Agent", NetUtils.USER_AGENT_VALUE)
+        Document document = Jsoup.connect(API + "/search.php").header("User-Agent", NetUtils.getRandomUA())
                 .data("keyword", keyword)
                 .post();
         List<SearchResultBean> searchResultBeanList = new ArrayList<>();
@@ -58,7 +58,7 @@ public class _147xsAPI implements API {
         if (!url.contains(API)) {
             url = API + url;
         }
-        Document document = Jsoup.connect(url).header("User-Agent", NetUtils.USER_AGENT_VALUE).get();
+        Document document = Jsoup.connect(url).header("User-Agent", NetUtils.getRandomUA()).get();
         Elements mainInfo = document.select("#maininfo");
         novelBean.novelName = mainInfo.select("#info > h1").text();
         novelBean.author = mainInfo.select("#info > p:nth-child(2)").text().split("：", 2)[1];
@@ -94,7 +94,7 @@ public class _147xsAPI implements API {
         } else {
             url = API + chapter.url;
         }
-        Document document = Jsoup.connect(url).header("User-Agent", NetUtils.USER_AGENT_VALUE).get();
+        Document document = Jsoup.connect(url).header("User-Agent", NetUtils.getRandomUA()).get();
         Elements paras = document.select("#content > p");
         StringBuilder builder = new StringBuilder();
         for (Element para : paras) {

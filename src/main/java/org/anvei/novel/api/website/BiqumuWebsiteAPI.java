@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class BiqumuAPI implements API {
+public class BiqumuWebsiteAPI implements API {
 
     private static final String API = "http://www.biqumu.com/";
 
@@ -63,13 +63,13 @@ public class BiqumuAPI implements API {
         pageReqFinished = 0;
         pageReqIsFinished = false;
         needReq = 0;
-        Document home = Jsoup.connect(url).header("User-Agent", NetUtils.USER_AGENT_VALUE).get();
+        Document home = Jsoup.connect(url).header("User-Agent", NetUtils.getRandomUA()).get();
         Element body = home.body();
         // 考虑到网络请求速度过于耗时，开启多线程请求其他章节分页
         final String tempUrl = url;
         new Thread(() -> {
             try {
-                Document document = Jsoup.connect(tempUrl + "1/").header("User-Agent", NetUtils.USER_AGENT_VALUE).get();
+                Document document = Jsoup.connect(tempUrl + "1/").header("User-Agent", NetUtils.getRandomUA()).get();
                 Elements options = document.select("body > div.container > div:nth-child(2) > div > div:nth-child(4) > select > option");
                 // 只有一页
                 switch (options.size()) {
@@ -88,7 +88,7 @@ public class BiqumuAPI implements API {
                                 String value = options.get(index).attr("value");
                                 Document temp = null;
                                 try {
-                                    temp = Jsoup.connect(API + value).header("User-Agent", NetUtils.USER_AGENT_VALUE).get();
+                                    temp = Jsoup.connect(API + value).header("User-Agent", NetUtils.getRandomUA()).get();
                                     pageList[index - 1] = temp;
                                 } catch (IOException e) {
                                     e.printStackTrace();
@@ -176,14 +176,14 @@ public class BiqumuAPI implements API {
     public ChapterBean getChapContent(ChapterBean chapterBean) throws IOException {
         String url = API + chapterBean.url;
         StringBuilder builder = new StringBuilder();
-        Document document = Jsoup.connect(url).header("User-Agent", NetUtils.USER_AGENT_VALUE).get();
+        Document document = Jsoup.connect(url).header("User-Agent", NetUtils.getRandomUA()).get();
         Elements paras = document.select("body > div.container > div.row.row-detail > div > div > p");
         for (Element para : paras) {
             builder.append(paraPrefix).append(para.text()).append(paraSuffix);
         }
         String href = document.select("body > div.container > div.row.row-detail > div > div > div:nth-child(31) > a:nth-child(4)").attr("href");
         while (href.contains("_")) {
-            document = Jsoup.connect(API + href).header("User-Agent", NetUtils.USER_AGENT_VALUE).get();
+            document = Jsoup.connect(API + href).header("User-Agent", NetUtils.getRandomUA()).get();
             paras = document.select("body > div.container > div.row.row-detail > div > div > p");
             boolean isFirst = true;
             for (Element para : paras) {
@@ -203,7 +203,7 @@ public class BiqumuAPI implements API {
      * 根据给定的关键字进行搜索小说
      */
     public List<SearchResultBean> search(String keyWord) throws IOException {
-        Document document = Jsoup.connect(API + "/search.html").header("User-Agent", NetUtils.USER_AGENT_VALUE)
+        Document document = Jsoup.connect(API + "/search.html").header("User-Agent", NetUtils.getRandomUA())
                 .data("s", keyWord)
                 .post();
         ArrayList<SearchResultBean> searchResultBeans = new ArrayList<>();

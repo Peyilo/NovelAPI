@@ -1,6 +1,6 @@
 package org.anvei.novel.website;
 
-import org.anvei.novel.api.website.BiqumuAPI;
+import org.anvei.novel.api.website.BiqumuWebsiteAPI;
 import org.anvei.novel.api.website.common.ChapterBean;
 import org.anvei.novel.api.website.common.NovelBean;
 import org.anvei.novel.api.website.biqumu.SearchResultBean;
@@ -14,7 +14,7 @@ public class TestBiqumu {
 
     @Test
     public void test1() throws IOException {
-        BiqumuAPI api = new BiqumuAPI();
+        BiqumuWebsiteAPI api = new BiqumuWebsiteAPI();
         NovelBean novelBean = api.getNovel(152281);
         System.out.println(novelBean.url);
         System.out.println(novelBean.author);
@@ -31,7 +31,7 @@ public class TestBiqumu {
 
     @Test
     public void testSearch() throws IOException {
-        BiqumuAPI api = new BiqumuAPI();
+        BiqumuWebsiteAPI api = new BiqumuWebsiteAPI();
         List<SearchResultBean> searchResultBeans = api.search("萝莉");
         System.out.println(TextUtils.toPrettyFormat(searchResultBeans));
     }
