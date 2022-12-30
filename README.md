@@ -28,11 +28,14 @@ DownloadParams params = new DownloadParams();
 // 文件将保存在该目录下
 params.parent = new File("E:\\Text File\\Novel");
 // 文件名
-params.fileName = "咸鱼少女拒绝翻身.txt";
+params.fileName = "此刻开始血族女孩逃亡世界";
 // sfacg小说ID
 params.novelId = 233718;
-// 多线程并行请求章节内容,开启后下载速度较快，但是对服务器造成的压力较大
-params.multiThreadOn = true;									
+// 开启的子线程个数
+params.maxThreadCount = 10;
+// 配置账号和密码进行登录（非必要）
+params.account = username;
+params.certificate = password;								
 ```
 
 - 下载小说

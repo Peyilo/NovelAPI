@@ -39,6 +39,8 @@ public class FileUtils {
                 file = new File(parent, name.substring(0, index)
                         + " (" + count + ")"
                         + name.substring(index));
+            } else {
+                file = new File(parent, name +  " (" + count + ")");
             }
             count++;
         }

@@ -10,6 +10,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public abstract class DownloadTask {
 
@@ -24,8 +26,6 @@ public abstract class DownloadTask {
 
     protected volatile Status downloadStatus = Status.UNINITIALIZED;
 
-    private Thread task;
-
     private int charCount = 0;
 
     private int chapterCount = 0;
@@ -33,6 +33,8 @@ public abstract class DownloadTask {
     private File targetFile;                // 最终下载目标文件，内容保存在该文件下
 
     protected DownloadParams downloadParams;
+
+    private static final long DEFAULT_TIMEOUT = 30000;
 
     public DownloadTask() {
     }
@@ -46,20 +48,27 @@ public abstract class DownloadTask {
         startDownload();
     }
 
+    protected ExecutorService mainPool = Executors.newSingleThreadExecutor();
+    protected ExecutorService subPool;
+
+    private volatile AtomicInteger taskFinishedCount;
+
     /**
-     * 在内部开启一个子线程开始下载
-     * TODO: 该函数内部耦合度过高，逻辑过于复杂，待简化
+     * 开始下载
      */
     public void startDownload() {
-        if (task != null) {
-            throw new IllegalStateException("正常情况下，该task应该为null。" +
-                    "只有当上个任务还未执行完成或者未调用stop()就再次就调用startDownload()，才会抛出该异常.");
-        }
         downloadStatus = Status.DOWNLOADING;
         charCount = 0;
         chapterCount = 0;
         targetFile = null;
-        task = new Thread(() -> {
+        taskFinishedCount = new AtomicInteger(0);
+        // 根据参数创建线程池
+        if (downloadParams.maxThreadCount > 1) {
+            subPool = Executors.newFixedThreadPool(downloadParams.maxThreadCount);
+        } else {
+            subPool = Executors.newSingleThreadExecutor();
+        }
+        Future<?> mainTask = mainPool.submit(() -> {
             try {
                 boolean needRename = false;
                 Novel novel = getNovel(downloadParams.novelId);
@@ -71,34 +80,29 @@ public abstract class DownloadTask {
                 }
                 File file = FileUtils.createFile(downloadParams.parent, downloadParams.fileName);
                 BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-                if (isFinish()) {
-                    task = null;
-                    return;
-                }
-                while (downloadStatus == Status.PAUSE);
-                if (downloadParams.multiThreadOn) {
-                    // 多线程请求章节内容
-                    for (Volume volume : novel.volumeList) {
-                        for (Chapter chapter : volume.chapterList) {
-                            new Thread(() -> {
-                                chapter.content = getChapterContent(downloadParams.novelId, chapter.chapId);
-                            }).start();
-                        }
+                // 多线程请求章节内容
+                int allTaskCount = 0;
+                for (Volume volume : novel.volumeList) {
+                    for (Chapter chapter : volume.chapterList) {
+                        allTaskCount++;
+                        subPool.submit(() -> {
+                            chapter.content = getChapterContent(downloadParams.novelId, chapter.chapId);
+                            taskFinishedCount.addAndGet(1);
+                        });
                     }
                 }
+                // 等待线程池任务全部执行完成
+                while (taskFinishedCount.get() < allTaskCount - 1) {
+                    if (downloadStatus == Status.STOP) {
+                        subPool.shutdown();
+                        subPool = null;
+                        return;
+                    }
+                }
+                // 文件流写入
                 for (Volume volume : novel.volumeList) {
                     String volumeTitle = volume.title;
                     for (Chapter chapter : volume.chapterList) {
-                        if (!downloadParams.multiThreadOn) {
-                            chapter.content = getChapterContent(downloadParams.novelId, chapter.chapId);
-                        }
-                        if (isFinish()) {
-                            task = null;
-                            return;
-                        }
-                        while (downloadStatus == Status.PAUSE || (downloadParams.multiThreadOn
-                                && chapter.content == null));
-                        // 在这里完成数据的写入
                         writeChapTitle(writer, volumeTitle, chapter.title);
                         writeChapContent(writer, chapter.content);
                         if (volumeTitle != null) {
@@ -114,7 +118,7 @@ public abstract class DownloadTask {
                     }
                 }
                 writer.close();
-                if (needRename) {
+                if (needRename && (novel.author != null || novel.title != null)) {
                     downloadParams.fileName = novel.title + " " + novel.author;
                     File rename;
                     if (downloadParams.parent != null) {
@@ -132,29 +136,15 @@ public abstract class DownloadTask {
                 downloadStatus = Status.FAILED;
                 e.printStackTrace();
             }
-            task = null;
+            subPool = null;
         });
-        // 计时部分
+        long timeout;
         if (downloadParams.timeout > 0) {
-            long start = System.currentTimeMillis();
-            new Thread(() -> {
-                long time;
-                long outTime = downloadParams.timeout;
-                while (true) {
-                    time = System.currentTimeMillis() - start;
-                    if (time > outTime) {
-                        downloadStatus = Status.FAILED;
-                        break;
-                    }
-                    if (!isFinish()) {
-                        break;
-                    }
-                }
-
-            }).start();
+            timeout = downloadParams.timeout;
+        } else {
+            timeout = DEFAULT_TIMEOUT;
         }
-        // 执行任务
-        task.start();
+
     }
 
     // 在该函数内保存章节、分卷信息，别在该函数内请求章节内容
@@ -163,18 +153,7 @@ public abstract class DownloadTask {
     // 请求章节内容
     public abstract String getChapterContent(long novelId, long chapId);
 
-    public void pause() {
-        if (downloadStatus == Status.DOWNLOADING) {
-            downloadStatus = Status.PAUSE;
-        }
-    }
-
-    public void restart() {
-        if (downloadStatus == Status.PAUSE) {
-            downloadStatus = Status.DOWNLOADING;
-        }
-    }
-
+    // 停止下载任务
     public void stop() {
         if (downloadStatus != Status.SUCCESS && downloadStatus != Status.UNINITIALIZED) {
             downloadStatus = Status.STOP;
@@ -195,14 +174,17 @@ public abstract class DownloadTask {
         if (volumeTitle == null) {
             volumeTitle = "";
         }
-        writer.write("\n" + volumeTitle + " " + chapTitle + "\n");
+        volumeTitle += " ";
+        writer.write(volumeTitle + chapTitle + "\n");
     }
 
     protected void writeChapContent(BufferedWriter writer, String chapContent) throws IOException {
         if (chapContent == null) {
             chapContent = "";
         }
-        writer.write(chapContent + "\n");
+        writer.newLine();
+        writer.write(chapContent);
+        writer.newLine();
     }
 
     /**

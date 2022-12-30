@@ -149,7 +149,7 @@ ZWM1YjJhZWYzMzEzMmUyNGExNDk1NzlmZWIwZDdhNzk2N2E5NTJmNGRmZjJhNzU2OWY3MTkxZDQ0ZDJl
         DownloadParams params = new DownloadParams();
         params.parent = new File("E:\\Text File\\Novel");
         params.novelId = 100307425;
-        params.multiThreadOn = true;
+        params.maxThreadCount = 10;
         params.api = api;
         downloadTask.startDownload(params);
         boolean res = downloadTask.waitFinished();

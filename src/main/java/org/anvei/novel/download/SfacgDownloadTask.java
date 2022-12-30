@@ -11,6 +11,26 @@ import java.io.IOException;
 
 public class SfacgDownloadTask extends DownloadTask {
 
+    private volatile SfacgAPI api;
+
+    private SfacgAPI getApi() {
+        if (api == null) {
+            synchronized (SfacgAPI.class) {
+                if (api == null) {
+                    if (downloadParams.api != null) {
+                        api = (SfacgAPI) downloadParams.api;
+                    } else if (downloadParams.account != null && downloadParams.certificate != null) {
+                        api = new SfacgAPI(downloadParams.account, downloadParams.certificate);
+                        api.login();
+                    } else {
+                        api = new SfacgAPI();
+                    }
+                }
+            }
+        }
+        return api;
+    }
+
     @Override
     public Novel getNovel(long novelId) {
         Novel novel = new Novel() {
@@ -25,7 +45,7 @@ public class SfacgDownloadTask extends DownloadTask {
             }
         };
         try {
-            ChapListJson chapListJson = new SfacgAPI().getChapListJson(novelId);
+            ChapListJson chapListJson = getApi().getChapListJson(novelId);
             for (int i = 0; i < chapListJson.getVolumeList().size(); i++) {
                 Volume v1 = new Volume();
                 ChapListJson.Volume v2 = chapListJson.getVolumeList().get(i);
@@ -51,7 +71,7 @@ public class SfacgDownloadTask extends DownloadTask {
     public String getChapterContent(long novelId, long chapId) {
         String s = null;
         try {
-            s = new SfacgAPI().getChapContentJson(chapId).getContent();
+            s = getApi().getChapContentJson(chapId).getContent();
         } catch (IOException e) {
             e.printStackTrace();
         }

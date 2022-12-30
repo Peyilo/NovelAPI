@@ -25,6 +25,10 @@ public class _147xsWebsiteAPI implements API {
         return NovelSource._143xsWebsite;
     }
 
+    /**
+     * 搜索功能
+     * @param keyword 关键字
+     */
     public List<SearchResultBean> search(String keyword) throws IOException {
         Document document = Jsoup.connect(API + "/search.php").header("User-Agent", NetUtils.getRandomUA())
                 .data("keyword", keyword)
