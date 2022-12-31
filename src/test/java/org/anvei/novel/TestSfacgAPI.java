@@ -4,10 +4,12 @@ import org.anvei.novel.api.SfacgAPI;
 import org.anvei.novel.api.sfacg.AccountJson;
 import org.anvei.novel.api.sfacg.ChapContentJson;
 import org.anvei.novel.api.sfacg.ChapListJson;
+import org.anvei.novel.api.sfacg.NovelHomeJson;
 import org.anvei.novel.utils.TextUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -29,6 +31,7 @@ public class TestSfacgAPI {
         } catch (Exception e){
             e.printStackTrace();
         }
+        SfacgAPI.setSfacgCache(new File("D:\\Programming\\IDEA\\NovelAPI\\sfacg_cache.json"));
     }
 
     @Test
@@ -60,6 +63,13 @@ public class TestSfacgAPI {
             ChapContentJson chapContentJson = api.getChapContentJson(chapter.chapId);
             System.out.println(TextUtils.toPrettyFormat(chapContentJson));
         }
+    }
+
+    @Test
+    public void test3() throws IOException {
+        SfacgAPI api = new SfacgAPI();
+        NovelHomeJson json = api.getNovelHomeJson(400306);
+        System.out.println(TextUtils.toPrettyFormat(json));
     }
 
 }

@@ -1,4 +1,5 @@
 ## NovelAPI
+
 提供常见小说网站以及App的便捷API
 
 #### API支持
@@ -35,16 +36,16 @@ params.novelId = 233718;
 params.maxThreadCount = 10;
 // 配置账号和密码进行登录（非必要）
 params.account = username;
-params.certificate = password;								
+params.certificate = password;                                
 ```
 
 - 下载小说
 
 ```java
-downloadTask.startDownload(params);			// 开始下载
-boolean res = downloadTask.waitFinished();	// 等待下载任务结束
-System.out.println("Download success: " + res);
-System.out.println("Status message: " + downloadTask.getStatusMsg());
+downloadTask.startDownload(params);            // 开始下载
+boolean res = downloadTask.waitFinished();    // 等待下载任务结束
+System.out.println("Download success: "+res);
+System.out.println("Status message: "+downloadTask.getStatusMsg());
 ```
 
 #### SfacgAPI的使用
@@ -52,7 +53,7 @@ System.out.println("Status message: " + downloadTask.getStatusMsg());
 1. 模拟登录
 
 ```java
-SfacgAPI api = new SfacgAPI("username", "password");
+SfacgAPI api = new SfacgAPI("username","password");
 api.login();
 ```
 

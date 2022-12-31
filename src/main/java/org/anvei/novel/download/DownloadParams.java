@@ -6,6 +6,13 @@ import java.io.File;
 
 public class DownloadParams {
 
+    public DownloadParams() {}
+
+    public DownloadParams(String parent, long novelId) {
+        this.parent = new File(parent);
+        this.novelId = novelId;
+    }
+
     public File parent;             // 保存在该文件夹下
 
     public long novelId;            // 小说id，对于一个网站来说，每一本小说都应该有一个唯一id标识
@@ -14,7 +21,7 @@ public class DownloadParams {
 
     public long timeout = -1;       // 超时时间
 
-    public int maxThreadCount = 1;
+    public int maxThreadCount = 10;
 
     public String account;          // 账号
 

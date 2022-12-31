@@ -52,23 +52,34 @@ public abstract class DownloadTask {
     protected ExecutorService subPool;
 
     private volatile AtomicInteger taskFinishedCount;
+    private int allTaskCount;
 
-    /**
-     * 开始下载
-     */
-    public void startDownload() {
+    // 初始化操作
+    private void initTask() {
+        if (subPool != null) {
+            subPool.shutdown();
+            subPool = null;
+        }
         downloadStatus = Status.DOWNLOADING;
         charCount = 0;
         chapterCount = 0;
         targetFile = null;
         taskFinishedCount = new AtomicInteger(0);
+        allTaskCount = 0;
         // 根据参数创建线程池
         if (downloadParams.maxThreadCount > 1) {
             subPool = Executors.newFixedThreadPool(downloadParams.maxThreadCount);
         } else {
             subPool = Executors.newSingleThreadExecutor();
         }
-        Future<?> mainTask = mainPool.submit(() -> {
+    }
+
+    /**
+     * 开始下载
+     */
+    public void startDownload() {
+        initTask();
+        mainPool.submit(() -> {
             try {
                 boolean needRename = false;
                 Novel novel = getNovel(downloadParams.novelId);
@@ -81,7 +92,6 @@ public abstract class DownloadTask {
                 File file = FileUtils.createFile(downloadParams.parent, downloadParams.fileName);
                 BufferedWriter writer = new BufferedWriter(new FileWriter(file));
                 // 多线程请求章节内容
-                int allTaskCount = 0;
                 for (Volume volume : novel.volumeList) {
                     for (Chapter chapter : volume.chapterList) {
                         allTaskCount++;
@@ -118,6 +128,7 @@ public abstract class DownloadTask {
                     }
                 }
                 writer.close();
+                // 处理文件重命名
                 if (needRename && (novel.author != null || novel.title != null)) {
                     downloadParams.fileName = novel.title + " " + novel.author;
                     File rename;
@@ -144,7 +155,23 @@ public abstract class DownloadTask {
         } else {
             timeout = DEFAULT_TIMEOUT;
         }
+        startTimeTask(timeout);
+    }
 
+    // 开启一个计时子线程
+    private void startTimeTask(long timeout) {
+        new Thread(() -> {
+            long startTime = System.currentTimeMillis();
+            // 等待任务结束或者超时
+            while (isUnFinish() && (System.currentTimeMillis() - startTime < timeout));
+            // 如果超时后，任务还未完成，就结束任务，并做一些清理工作
+            if (isUnFinish()) {
+                subPool.shutdown();
+                subPool = null;
+                mainPool.shutdown();
+                downloadStatus = Status.FAILED;
+            }
+        }).start();
     }
 
     // 在该函数内保存章节、分卷信息，别在该函数内请求章节内容
@@ -160,10 +187,11 @@ public abstract class DownloadTask {
         }
     }
 
-    public boolean isFinish() {
-        return downloadStatus == Status.FAILED ||
-                downloadStatus == Status.SUCCESS ||
-                downloadStatus == Status.STOP;
+    // 任务是否已经结束，如果没有结束就返回true
+    public boolean isUnFinish() {
+        return downloadStatus != Status.FAILED &&
+                downloadStatus != Status.SUCCESS &&
+                downloadStatus != Status.STOP;
     }
 
     public Status getStatusMsg() {
@@ -191,14 +219,23 @@ public abstract class DownloadTask {
      * 等待下载任务结束，下载成功返回true，否则返回false
      */
     public boolean waitFinished() {
-        while (!isFinish());
+        while (isUnFinish());
         return downloadStatus == Status.SUCCESS;
     }
 
+    public boolean waitFinished(Runnable runnable) {
+        while (isUnFinish()) {
+            runnable.run();
+        }
+        return downloadStatus == Status.SUCCESS;
+    }
+
+    // 获取任务已下载字数
     public int getCharCount() {
         return charCount;
     }
 
+    // 获取下载任务的小说章节数
     public int getChapterCount() {
         return chapterCount;
     }
@@ -208,5 +245,12 @@ public abstract class DownloadTask {
      */
     public File getTargetFile() {
         return targetFile;
+    }
+
+    // 获取当前下载进度
+    public int getDownloadProcess() {
+        if (allTaskCount == 0)
+            return 0;
+        return taskFinishedCount.intValue() * 100 / allTaskCount;
     }
 }

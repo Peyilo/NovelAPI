@@ -1,6 +1,7 @@
 package org.anvei.novel.download;
 
 import org.anvei.novel.NovelSource;
+import org.anvei.novel.api.sfacg.NovelHomeJson;
 import org.anvei.novel.beans.Chapter;
 import org.anvei.novel.beans.Novel;
 import org.anvei.novel.beans.Volume;
@@ -45,6 +46,9 @@ public class SfacgDownloadTask extends DownloadTask {
             }
         };
         try {
+            NovelHomeJson novelHomeJson = getApi().getNovelHomeJson(novelId);
+            novel.title = novelHomeJson.data.novelName;
+            novel.author = novelHomeJson.data.authorName;
             ChapListJson chapListJson = getApi().getChapListJson(novelId);
             for (int i = 0; i < chapListJson.getVolumeList().size(); i++) {
                 Volume v1 = new Volume();

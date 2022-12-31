@@ -69,7 +69,7 @@ public class Config {
     }
 
     public static boolean saveAppConfig() {
-        URL url = Config.class.getResource(APP_CONFIG_FILE_PATH);
+        URL url = Config.class.getClassLoader().getResource(APP_CONFIG_FILE_PATH);
         if (url == null) {
             return false;
         }

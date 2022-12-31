@@ -2,9 +2,12 @@ package org.anvei.novel.api;
 
 import org.anvei.novel.NovelSource;
 import org.anvei.novel.api.sfacg.*;
+import org.anvei.novel.utils.FileUtils;
 import org.anvei.novel.utils.SecurityUtils;
+import org.anvei.novel.utils.TextUtils;
 import org.jsoup.Connection;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -52,6 +55,8 @@ public class SfacgAPI implements API {
     private String username;
     private String password;
 
+    private static File sfacgCache;
+
     public SfacgAPI(String username, String password) {
         this.username = username;
         this.password = password;
@@ -91,6 +96,21 @@ public class SfacgAPI implements API {
         return userAgent;
     }
 
+    // 获取小说主页信息
+    public NovelHomeJson getNovelHomeJson(long novelId) throws IOException {
+        Connection connection = getConnection(API + "/novels/" + novelId)
+                .headers(getHeaders())
+                .header("SFSecurity", getSFSecurity(DEFAULT_DEVICE_TOKEN))
+                .data("expand", "intro,ticket,fav,typeName,tags,sysTags,pointCount,signLevel,discount,discountExpireDate,totalNeedFireMoney,originTotalNeedFireMoney,latestchapter,bigBgBanner,bigNovelCover,preOrderInfo,canUnlockWithAd,rankinglist,ticketrange,bonurange,bonunum,homeFlag,essayawards");
+        if (timeout > 0) {
+            connection.timeout(timeout);
+        }
+        String json = connection.get().body().text();
+        // System.out.println(TextUtils.toPrettyFormat(json));
+        return getGson().fromJson(json, NovelHomeJson.class);
+    }
+
+    // 获取章节列表
     public ChapListJson getChapListJson(long novelId) throws IOException {
         Connection connection = getConnection(API + "/novels/" + novelId + "/dirs")
                 .headers(getHeaders());
@@ -118,6 +138,22 @@ public class SfacgAPI implements API {
         return getGson().fromJson(json, ChapContentJson.class);
     }
 
+    public static File getSfacgCache() {
+        return sfacgCache;
+    }
+
+    // 设置账号缓存文件
+    public static void setSfacgCache(File sfacgCache) {
+        SfacgAPI.sfacgCache = sfacgCache;
+        if (!sfacgCache.exists()) {
+            try {
+                sfacgCache.createNewFile();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
     /**
      * 模拟登录功能，登录之后，会保存相应的cookies
      */
@@ -132,6 +168,37 @@ public class SfacgAPI implements API {
         if (loginStatus != LoginStatus.UnLogin) {
             loginOut();
         }
+        // 在登录之前
+        if (!loginFlag && sfacgCache != null) {
+            try {
+                String json = FileUtils.readAllString(sfacgCache);
+                SfacgCacheJson sfacgCacheJson = getGson().fromJson(json, SfacgCacheJson.class);
+                // 如果上次登录过该账号，就使用cookies确认账号登录是否还有效
+                if (sfacgCacheJson != null && sfacgCacheJson.account != null &&
+                    sfacgCacheJson.password != null) {
+                    decrypt(sfacgCacheJson);
+                    if (sfacgCacheJson.account.equals(username) && sfacgCacheJson.password.equals(password) &&
+                            sfacgCacheJson.cookies.sessionAPP != null && sfacgCacheJson.cookies.SFCommunity != null) {
+                        cookies.put(SFCommunity, sfacgCacheJson.cookies.SFCommunity);
+                        cookies.put(sessionAPP, sfacgCacheJson.cookies.sessionAPP);
+                        loginStatus = LoginStatus.Login;        // 将登录状态置为Login，以免getAccountJson()抛异常
+                        AccountJson accountJson = getAccountJson();
+                        if (accountJson.status.httpCode == SUCCESS_CODE) {
+                            // 利用缓存的cookies登陆成功
+                            System.out.println("[INFO] Attempting to sign in by cookies!");
+                            return true;
+                        }
+                        System.out.println("[INFO] Cookies cache 失效!");
+                        // 缓存的cookies已经失效，试着重新登录
+                        cookies.clear();
+                        loginStatus = LoginStatus.UnLogin;
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("[INFO] Attempting to sign in by username and password!");
         Connection connection = getConnection(API + "/sessions")
                 .headers(getHeaders())
                 .header("SFSecurity", getSFSecurity(DEFAULT_DEVICE_TOKEN))
@@ -157,9 +224,42 @@ public class SfacgAPI implements API {
         }
         cookies.put(SFCommunity, response.cookie(SFCommunity));
         cookies.put(sessionAPP, response.cookie(sessionAPP));
+        if (sfacgCache != null) {
+            // 更新sfacg_cache文件
+            SfacgCacheJson sfacgCacheJson = new SfacgCacheJson();
+            sfacgCacheJson.cookies = new SfacgCacheJson.Cookies();
+            sfacgCacheJson.cookies.SFCommunity = response.cookie(SFCommunity);
+            sfacgCacheJson.cookies.sessionAPP = response.cookie(sessionAPP);
+            sfacgCacheJson.account = username;
+            sfacgCacheJson.password = password;
+            encrypt(sfacgCacheJson);
+            boolean writeRes = FileUtils.writeFile(TextUtils.toPrettyFormat(sfacgCacheJson), sfacgCache);
+            System.out.println("Cookies cache write result: " + writeRes);
+        }
         loginStatus = LoginStatus.Login;
+        if (loginFlag) {
+            loginFlag = false;
+        }
         return true;
     }
+
+    private void decrypt(SfacgCacheJson sfacgCacheJson) {
+
+    }
+
+    private void encrypt(SfacgCacheJson sfacgCacheJson) {
+
+    }
+
+    private String decrypt(String str) {
+        return str;
+    }
+
+    private String encrypt(String str) {
+        return str;
+    }
+
+    private boolean loginFlag = false;          // 该标志位，必须通过一次账号登录才能将其从true置为false
 
     /**
      * 登出账号: 清空cookies
@@ -167,6 +267,7 @@ public class SfacgAPI implements API {
     public void loginOut() {
         cookies.clear();
         loginStatus = LoginStatus.UnLogin;
+        loginFlag = true;
     }
 
     private String getCookieValue() {

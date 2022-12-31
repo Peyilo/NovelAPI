@@ -6,7 +6,6 @@ import org.anvei.novel.download.DownloadTasks;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 
 public class TestDownloadTask {
@@ -28,14 +27,8 @@ public class TestDownloadTask {
 
     @Test
     public void test1() {
-        DownloadParams params = new DownloadParams();
-        params.parent = new File("E:\\Text File\\Novel");
-        params.novelId = 400306;
-        params.maxThreadCount = 10;
-        params.fileName = "此刻开始血族女孩逃亡世界";
-        params.account = username;
-        params.certificate = password;
         DownloadTask task = DownloadTasks.getDownloadTask(NovelSource.SfacgAPP);
+        DownloadParams params = new DownloadParams("E:\\Text File\\Novel", 400306);
         task.startDownload(params);
         boolean res = task.waitFinished();
         System.out.println(res);

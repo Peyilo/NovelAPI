@@ -86,4 +86,35 @@ public class FileUtils {
         }
     }
 
+    // 读取文件所有字符
+    public static String readAllString(File source) throws IOException {
+       return readAllString(new FileInputStream(source));
+    }
+
+    public static String readAllString(InputStream is) throws IOException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder builder = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            builder.append(line).append("\n");
+        }
+        return builder.toString();
+    }
+
+    // 将字符串写入文件
+    public static boolean writeFile(String str, File target) {
+        try {
+            if (!target.exists())
+                target.createNewFile();
+            OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(target));
+            writer.write(str);
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
 }
