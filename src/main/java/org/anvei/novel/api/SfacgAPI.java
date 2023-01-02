@@ -377,4 +377,5 @@ public class SfacgAPI implements API {
     public NovelSource getNovelSource() {
         return NovelSource.SfacgAPP;
     }
+
 }

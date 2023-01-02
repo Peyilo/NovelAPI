@@ -1,8 +1,8 @@
 package org.anvei.novel.download;
 
-import org.anvei.novel.beans.Chapter;
-import org.anvei.novel.beans.Novel;
-import org.anvei.novel.beans.Volume;
+import org.anvei.novel.download.beans.Chapter;
+import org.anvei.novel.download.beans.Novel;
+import org.anvei.novel.download.beans.Volume;
 import org.anvei.novel.utils.FileUtils;
 import org.anvei.novel.utils.SecurityUtils;
 
@@ -82,7 +82,18 @@ public abstract class DownloadTask {
         mainPool.submit(() -> {
             try {
                 boolean needRename = false;
-                Novel novel = getNovel(downloadParams.novelId);
+                Novel novel;
+                if (downloadParams.novelId != -1) {
+                    novel = getNovel(downloadParams.novelId);
+                } else {
+                    novel = select(downloadParams.keyword);
+                }
+                // 如果novel还是为null，就表示下载目标确认失败
+                if (novel == null) {
+                    subPool = null;
+                    downloadStatus = Status.FAILED;
+                    return;
+                }
                 if (downloadParams.fileName == null) {                      // 如果没配置文件名，就以novelId的md5值作为文件名
                     downloadParams.fileName = SecurityUtils.getMD5Str(downloadParams.novelId + ".txt");
                     needRename = true;
@@ -175,10 +186,13 @@ public abstract class DownloadTask {
     }
 
     // 在该函数内保存章节、分卷信息，别在该函数内请求章节内容
-    public abstract Novel getNovel(long novelId);
+    protected abstract Novel getNovel(long novelId);
 
     // 请求章节内容
-    public abstract String getChapterContent(long novelId, long chapId);
+    protected abstract String getChapterContent(long novelId, long chapId);
+
+    // 根据一个关键词，获取Novel对象，并且将根据该Novel对象下载选中的小说
+    protected abstract Novel select(String keyword);
 
     // 停止下载任务
     public void stop() {

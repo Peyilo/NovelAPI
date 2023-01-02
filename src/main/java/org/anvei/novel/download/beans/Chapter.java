@@ -1,4 +1,4 @@
-package org.anvei.novel.beans;
+package org.anvei.novel.download.beans;
 
 /**
  * 表示章节基本信息

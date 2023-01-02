@@ -7,6 +7,7 @@ import org.anvei.novel.download.DownloadTask;
 import org.anvei.novel.download.DownloadTasks;
 import org.anvei.novel.utils.NetUtils;
 import org.anvei.novel.utils.SecurityUtils;
+import org.anvei.novel.utils.TextUtils;
 import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
 import org.junit.Before;
@@ -161,4 +162,15 @@ ZWM1YjJhZWYzMzEzMmUyNGExNDk1NzlmZWIwZDdhNzk2N2E5NTJmNGRmZjJhNzU2OWY3MTkxZDQ0ZDJl
             System.out.println("下载失败!");
         }
     }
+
+    @Test
+    public void test10() {
+        DownloadParams params = new DownloadParams("E:\\Text File\\Novel", "萝莉大镖客");
+        params.api = api;
+        DownloadTask task = DownloadTasks.getDownloadTask(NovelSource.HbookerAPP);
+        task.startDownload(params);
+        task.waitFinished();
+        System.out.println(task.getTargetFile());
+    }
+
 }

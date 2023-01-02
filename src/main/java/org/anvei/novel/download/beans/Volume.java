@@ -1,4 +1,4 @@
-package org.anvei.novel.beans;
+package org.anvei.novel.download.beans;
 
 import java.util.ArrayList;
 import java.util.List;

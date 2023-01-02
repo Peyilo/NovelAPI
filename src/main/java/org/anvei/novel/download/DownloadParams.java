@@ -13,9 +13,16 @@ public class DownloadParams {
         this.novelId = novelId;
     }
 
+    public DownloadParams(String parent, String keyword) {
+        this.parent = new File(parent);
+        this.keyword = keyword;
+    }
+
     public File parent;             // 保存在该文件夹下
 
-    public long novelId;            // 小说id，对于一个网站来说，每一本小说都应该有一个唯一id标识
+    public long novelId = -1;            // 小说id，对于一个网站来说，每一本小说都应该有一个唯一id标识
+
+    public String keyword;          // novelId和keyword都可以指定下载目标，但是novelId优先于keyword
 
     public String fileName;         // 文件名称
 
