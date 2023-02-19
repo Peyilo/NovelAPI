@@ -107,8 +107,13 @@ public abstract class DownloadTask {
                     for (Chapter chapter : volume.chapterList) {
                         allTaskCount++;
                         subPool.submit(() -> {
-                            chapter.content = getChapterContent(downloadParams.novelId, chapter.chapId);
-                            taskFinishedCount.addAndGet(1);
+                            // 如果chapter的url属性不为null，就通过url获取章节内容，反之通过id获取
+                            if (chapter.url != null) {
+                                chapter.content = getChapterContent(chapter.url);
+                            } else {
+                                chapter.content = getChapterContent(downloadParams.novelId, chapter.chapId);
+                            }
+                            taskFinishedCount.incrementAndGet();
                         });
                     }
                 }
@@ -188,11 +193,17 @@ public abstract class DownloadTask {
     // 在该函数内保存章节、分卷信息，别在该函数内请求章节内容
     protected abstract Novel getNovel(long novelId);
 
-    // 请求章节内容
-    protected abstract String getChapterContent(long novelId, long chapId);
-
     // 根据一个关键词，获取Novel对象，并且将根据该Novel对象下载选中的小说
     protected abstract Novel select(String keyword);
+
+    // 请求章节内容
+    protected String getChapterContent(long novelId, long chapId) {
+        throw new IllegalStateException("请重写该方法!");
+    }
+
+    protected String getChapterContent(String url) {
+        throw new IllegalStateException("请重写该方法!");
+    }
 
     // 停止下载任务
     public void stop() {

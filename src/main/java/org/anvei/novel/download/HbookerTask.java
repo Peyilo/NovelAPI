@@ -13,7 +13,7 @@ import org.anvei.novel.download.beans.Volume;
 import java.io.IOException;
 import java.util.List;
 
-public class HbookerDownloadTask extends DownloadTask {
+public class HbookerTask extends DownloadTask {
 
     private volatile HbookerAPI api;
 

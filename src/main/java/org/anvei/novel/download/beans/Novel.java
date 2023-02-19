@@ -16,6 +16,8 @@ public class Novel {
 
     public long novelId;
 
+    public String url;
+
     public List<Volume> volumeList = new ArrayList<>();         // 卷列表
 
     public final boolean hasMultiVolume;                   // 该网站小说是否具有分卷

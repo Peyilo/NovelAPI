@@ -1,7 +1,7 @@
 package org.anvei.novel.api.website;
 
 import org.anvei.novel.NovelSource;
-import org.anvei.novel.api.API;
+import org.anvei.novel.api.CrawlerAPI;
 import org.anvei.novel.api.website.common.ChapterBean;
 import org.anvei.novel.api.website.fanqie.NovelBean;
 import org.anvei.novel.api.website.fanqie.SearchResultJson;
@@ -18,7 +18,7 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FanqieWebsiteAPI implements API {
+public class FanqieWebsiteAPI implements CrawlerAPI {
 
     private static final String baseUrl = "https://fanqienovel.com";
     private static final String searchAPI = baseUrl + "/api/author/search/search_book/v1";

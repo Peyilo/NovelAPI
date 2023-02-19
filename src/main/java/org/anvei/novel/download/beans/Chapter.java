@@ -7,9 +7,11 @@ public class Chapter {
 
     public long chapId;
 
+    public String url;
+
     public int chapOrder;                                   // 章节序号
 
-    public String title;                                       // 章节名
+    public String title;                                    // 章节名
 
     public String content;                                  // 章节内容
 

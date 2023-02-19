@@ -2,7 +2,7 @@ package org.anvei.novel.download;
 
 import org.anvei.novel.download.beans.Novel;
 
-public class FanqieWebsiteDownloadTask extends DownloadTask {
+public class FanqieWebsiteTask extends DownloadTask {
 
     @Override
     public Novel getNovel(long novelId) {

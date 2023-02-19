@@ -12,7 +12,7 @@ import org.anvei.novel.api.sfacg.ChapListJson;
 import java.io.IOException;
 import java.util.List;
 
-public class SfacgDownloadTask extends DownloadTask {
+public class SfacgTask extends DownloadTask {
 
     private volatile SfacgAPI api;
 

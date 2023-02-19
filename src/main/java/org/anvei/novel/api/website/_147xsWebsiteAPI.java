@@ -1,12 +1,14 @@
 package org.anvei.novel.api.website;
 
 import org.anvei.novel.NovelSource;
-import org.anvei.novel.api.API;
+import org.anvei.novel.api.RetryableAPI;
 import org.anvei.novel.api.website._147xs.SearchResultBean;
 import org.anvei.novel.api.website.common.ChapterBean;
 import org.anvei.novel.api.website.common.NovelBean;
 import org.anvei.novel.api.website.common.NovelStatus;
+import org.anvei.novel.api.exceptions.ConnectionException;
 import org.anvei.novel.utils.NetUtils;
+import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -16,7 +18,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class _147xsWebsiteAPI implements API {
+@Deprecated
+public class _147xsWebsiteAPI extends RetryableAPI {
 
     private static final String API = "https://www.147xs.org/";
 
@@ -29,10 +32,11 @@ public class _147xsWebsiteAPI implements API {
      * 搜索功能
      * @param keyword 关键字
      */
-    public List<SearchResultBean> search(String keyword) throws IOException {
-        Document document = Jsoup.connect(API + "/search.php").header("User-Agent", NetUtils.getRandomUA())
-                .data("keyword", keyword)
-                .post();
+    public List<SearchResultBean> search(String keyword) throws IOException, ConnectionException {
+        Connection connection = Jsoup.connect(API + "/search.php")
+                .header("User-Agent", NetUtils.getRandomUA())
+                .data("keyword", keyword);
+        Document document = connect(connection, Connection.Method.POST);
         List<SearchResultBean> searchResultBeanList = new ArrayList<>();
         Elements results = document.select("#bookcase_list > tr");
         for (Element result : results) {
@@ -56,13 +60,17 @@ public class _147xsWebsiteAPI implements API {
         return searchResultBeanList;
     }
 
-    public NovelBean getNovel(String url) throws IOException {
+    /**
+     * 该方法会获取小说基本信息，以及小说章节列表信息
+     */
+    public NovelBean getNovel(String url) throws IOException, ConnectionException {
         NovelBean novelBean = new NovelBean(getNovelSource());
         novelBean.url = url;
         if (!url.contains(API)) {
             url = API + url;
         }
-        Document document = Jsoup.connect(url).header("User-Agent", NetUtils.getRandomUA()).get();
+        Connection connection = Jsoup.connect(url).header("User-Agent", NetUtils.getRandomUA());
+        Document document = connect(connection, Connection.Method.GET);
         Elements mainInfo = document.select("#maininfo");
         novelBean.novelName = mainInfo.select("#info > h1").text();
         novelBean.author = mainInfo.select("#info > p:nth-child(2)").text().split("：", 2)[1];
@@ -83,29 +91,31 @@ public class _147xsWebsiteAPI implements API {
         return novelBean;
     }
 
-    public NovelBean getNovel(SearchResultBean searchResultBean) throws IOException {
+    public NovelBean getNovel(SearchResultBean searchResultBean) throws IOException, ConnectionException {
         return getNovel(searchResultBean.url);
     }
 
-    public NovelBean getNovel(long novelId) throws IOException {
+    public NovelBean getNovel(long novelId) throws IOException, ConnectionException {
         return getNovel("/book/" + novelId + "/");
     }
 
-    public ChapterBean getChapContent(ChapterBean chapter) throws IOException {
-        String url;
-        if (chapter.url.contains(API)) {
-            url = chapter.url;
-        } else {
-            url = API + chapter.url;
+    public String getChapContent(ChapterBean chapter) throws ConnectionException {
+        chapter.content = getChapContent(chapter.url);
+        return chapter.content;
+    }
+
+    public String getChapContent(String url) throws ConnectionException {
+        if (!url.contains(API)) {
+            url = API + url;
         }
-        Document document = Jsoup.connect(url).header("User-Agent", NetUtils.getRandomUA()).get();
+        Connection connection = Jsoup.connect(url).header("User-Agent", NetUtils.getRandomUA());
+        Document document = connect(connection, Connection.Method.GET);
         Elements paras = document.select("#content > p");
         StringBuilder builder = new StringBuilder();
         for (Element para : paras) {
             builder.append("\t").append(para.text()).append("\n");
         }
-        chapter.content = builder.toString();
-        return chapter;
+        return builder.toString();
     }
 
 }

@@ -9,7 +9,7 @@ import java.util.Random;
 
 public class NetUtils {
 
-    public static Connection getConnection(String url) {
+    public static Connection getIgnoredConnection(String url) {
         return Jsoup.connect(url)
                 .ignoreContentType(true)
                 .ignoreHttpErrors(true);

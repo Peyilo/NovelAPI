@@ -10,7 +10,7 @@ import java.io.IOException;
 import static org.anvei.novel.api.hbooker.HbookerSecurity.decrypt;
 import static org.anvei.novel.utils.TextUtils.getGson;
 
-public class HbookerAPI implements API {
+public class HbookerAPI extends RetryableAPI {
 
     private static final String API = "https://app.hbooker.com";
 
@@ -46,7 +46,7 @@ public class HbookerAPI implements API {
     }
 
     private Connection getConnection(String suffix) {
-        return NetUtils.getConnection(API + suffix)
+        return NetUtils.getIgnoredConnection(API + suffix)
                 .data("account", account)
                 .data("app_version", appVersion)
                 .data("device_token", deviceToken)
@@ -69,7 +69,7 @@ public class HbookerAPI implements API {
         if (timeout > 0) {
             connection.timeout(timeout);
         }
-        String json = decrypt(connection.post().body().text());
+        String json = decrypt(connect(connection, Connection.Method.POST).body().text());
         return getGson().fromJson(json, SearchResultJson.class);
     }
 
@@ -104,7 +104,7 @@ public class HbookerAPI implements API {
         if (timeout > 0) {
             connection.timeout(timeout);
         }
-        String json = decrypt(connection.post().body().text());
+        String json = decrypt(connect(connection, Connection.Method.POST).body().text());
         return getGson().fromJson(json, BookInfoJson.class);
     }
 
@@ -114,7 +114,7 @@ public class HbookerAPI implements API {
         if (timeout > 0) {
             connection.timeout(timeout);
         }
-        String json = decrypt(connection.post().body().text());
+        String json = decrypt(connect(connection, Connection.Method.POST).body().text());
         return getGson().fromJson(json, DivisionInfoJson.class);
     }
 
@@ -124,7 +124,7 @@ public class HbookerAPI implements API {
         if (timeout > 0) {
             connection.timeout(timeout);
         }
-        String json = decrypt(connection.post().body().text());
+        String json = decrypt(connect(connection, Connection.Method.POST).body().text());
         return getGson().fromJson(json, ChapListInfoJson.class);
     }
 
@@ -135,7 +135,7 @@ public class HbookerAPI implements API {
         if (timeout > 0) {
             connection.timeout(timeout);
         }
-        String json = decrypt(connection.post().body().text());
+        String json = decrypt(connect(connection, Connection.Method.POST).body().text());
         return getGson().fromJson(json, ChapterCommandJson.class);
     }
 
@@ -150,7 +150,7 @@ public class HbookerAPI implements API {
         if (timeout > 0) {
             connection.timeout(timeout);
         }
-        String json = decrypt(connection.post().body().text());
+        String json = decrypt(connect(connection, Connection.Method.POST).body().text());
         ChapterInfoJson chapterInfoJson = getGson().fromJson(json, ChapterInfoJson.class);
         if (chapterInfoJson.data != null && chapterInfoJson.data.chapterInfo != null
                 && chapterInfoJson.data.chapterInfo.txtContent != null) {

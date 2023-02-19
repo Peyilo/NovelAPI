@@ -1,10 +1,7 @@
 package org.anvei.novel;
 
 import org.anvei.novel.api.SfacgAPI;
-import org.anvei.novel.api.sfacg.AccountJson;
-import org.anvei.novel.api.sfacg.ChapContentJson;
-import org.anvei.novel.api.sfacg.ChapListJson;
-import org.anvei.novel.api.sfacg.NovelHomeJson;
+import org.anvei.novel.api.sfacg.*;
 import org.anvei.novel.utils.TextUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,6 +18,7 @@ public class TestSfacgAPI {
     private String username;
     private String password;
 
+    // 读取文件中的username、password的值
     @Before
     public void init() throws IOException {
         Config.initAppConfig();
@@ -70,6 +68,11 @@ public class TestSfacgAPI {
         SfacgAPI api = new SfacgAPI();
         NovelHomeJson json = api.getNovelHomeJson(400306);
         System.out.println(TextUtils.toPrettyFormat(json));
+    }
+
+    @Test
+    public void test4() throws IOException {
+
     }
 
 }

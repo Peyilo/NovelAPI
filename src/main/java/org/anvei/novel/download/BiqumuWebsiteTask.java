@@ -2,7 +2,8 @@ package org.anvei.novel.download;
 
 import org.anvei.novel.download.beans.Novel;
 
-public class _147xsWebsiteDownloadTask extends DownloadTask {
+@Deprecated
+public class BiqumuWebsiteTask extends DownloadTask {
 
     @Override
     public Novel getNovel(long novelId) {

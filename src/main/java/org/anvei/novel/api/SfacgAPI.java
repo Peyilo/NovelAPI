@@ -1,6 +1,7 @@
 package org.anvei.novel.api;
 
 import org.anvei.novel.NovelSource;
+import org.anvei.novel.api.exceptions.ConnectionException;
 import org.anvei.novel.api.sfacg.*;
 import org.anvei.novel.utils.FileUtils;
 import org.anvei.novel.utils.SecurityUtils;
@@ -13,14 +14,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.anvei.novel.utils.NetUtils.getConnection;
+import static org.anvei.novel.utils.NetUtils.getIgnoredConnection;
 import static org.anvei.novel.utils.TextUtils.getGson;
 
 /**
  * 菠萝包轻小说  (官网 https://www.sfacg.com/) <br/>
  * 该类提供了菠萝包轻小说网的登录、搜索、账号、小说相关API    <br/>
  */
-public class SfacgAPI implements API {
+public class SfacgAPI extends RetryableAPI {
 
     private static final String API = "https://api.sfacg.com";              // SFACG APP查询API
 
@@ -55,6 +56,8 @@ public class SfacgAPI implements API {
     private String username;
     private String password;
 
+    private String deviceToken = DEFAULT_DEVICE_TOKEN;
+
     private static File sfacgCache;
 
     public SfacgAPI(String username, String password) {
@@ -62,7 +65,19 @@ public class SfacgAPI implements API {
         this.password = password;
     }
 
+    // SfacgAPI可以不需要登录
     public SfacgAPI() {
+    }
+
+    private static final class InstanceHolder {
+        private static final SfacgAPI instance = new SfacgAPI();
+    }
+
+    /**
+     * 获取一个单例对象
+     */
+    public static SfacgAPI getInstance() {
+        return InstanceHolder.instance;
     }
 
     /**
@@ -78,7 +93,7 @@ public class SfacgAPI implements API {
     /**
      * 获取SFSecurity的值（该值将作为请求头部进行验证，服务器用其来反爬虫）  <br/>
      */
-    protected String getSFSecurity(String deviceToken) {
+    protected String getSFSecurity() {
         String nonce = UUID.randomUUID().toString();
         String timestamp = System.currentTimeMillis() + "";
         String sign = SecurityUtils.getMD5Str(nonce, timestamp, deviceToken, salt);
@@ -86,9 +101,6 @@ public class SfacgAPI implements API {
                 + "&sign=" + sign.toUpperCase();
     }
 
-    /**
-     * 获取小说章节列表信息
-     */
     public String getUserAgent() {
         if (userAgent == null) {
             return DEFAULT_USER_AGENT;
@@ -98,26 +110,25 @@ public class SfacgAPI implements API {
 
     // 获取小说主页信息
     public NovelHomeJson getNovelHomeJson(long novelId) throws IOException {
-        Connection connection = getConnection(API + "/novels/" + novelId)
+        Connection connection = getIgnoredConnection(API + "/novels/" + novelId)
                 .headers(getHeaders())
-                .header("SFSecurity", getSFSecurity(DEFAULT_DEVICE_TOKEN))
+                .header("SFSecurity", getSFSecurity())
                 .data("expand", "intro,ticket,fav,typeName,tags,sysTags,pointCount,signLevel,discount,discountExpireDate,totalNeedFireMoney,originTotalNeedFireMoney,latestchapter,bigBgBanner,bigNovelCover,preOrderInfo,canUnlockWithAd,rankinglist,ticketrange,bonurange,bonunum,homeFlag,essayawards");
         if (timeout > 0) {
             connection.timeout(timeout);
         }
-        String json = connection.get().body().text();
-        // System.out.println(TextUtils.toPrettyFormat(json));
+        String json = connect(connection, Connection.Method.GET).body().text();
         return getGson().fromJson(json, NovelHomeJson.class);
     }
 
     // 获取章节列表
     public ChapListJson getChapListJson(long novelId) throws IOException {
-        Connection connection = getConnection(API + "/novels/" + novelId + "/dirs")
+        Connection connection = getIgnoredConnection(API + "/novels/" + novelId + "/dirs")
                 .headers(getHeaders());
         if (timeout > 0) {
             connection.timeout(timeout);
         }
-        String json = connection.get().body().text();                   // JSON解析
+        String json = connect(connection, Connection.Method.GET).body().text();                   // JSON解析
         return getGson().fromJson(json, ChapListJson.class);
     }
 
@@ -125,16 +136,16 @@ public class SfacgAPI implements API {
      * 获取章节内容信息
      */
     public ChapContentJson getChapContentJson(long chapId) throws IOException {
-        Connection connection = getConnection(API + "/Chaps/" + chapId)
+        Connection connection = getIgnoredConnection(API + "/Chaps/" + chapId)
                 .headers(getHeaders())
                 .header("cookie", getCookieValue())
-                .header("SFSecurity", getSFSecurity(DEFAULT_DEVICE_TOKEN))
+                .header("SFSecurity", getSFSecurity())
                 .data("chapsId", chapId + "")
                 .data("expand", "content,chatlines,tsukkomi,needFireMoney,originNeedFireMoney");
         if (timeout > 0) {
             connection.timeout(timeout);
         }
-        String json = connection.get().body().text();
+        String json = connect(connection, Connection.Method.GET).body().text();
         return getGson().fromJson(json, ChapContentJson.class);
     }
 
@@ -142,7 +153,7 @@ public class SfacgAPI implements API {
         return sfacgCache;
     }
 
-    // 设置账号缓存文件
+    // 设置账号配置缓存文件
     public static void setSfacgCache(File sfacgCache) {
         SfacgAPI.sfacgCache = sfacgCache;
         if (!sfacgCache.exists()) {
@@ -156,6 +167,7 @@ public class SfacgAPI implements API {
 
     /**
      * 模拟登录功能，登录之后，会保存相应的cookies
+     * @return 是否登录成功
      */
     public boolean login(String username, String password) {
         this.username = username;
@@ -198,19 +210,19 @@ public class SfacgAPI implements API {
                 e.printStackTrace();
             }
         }
+        // 尝试直接登录
         System.out.println("[INFO] Attempting to sign in by username and password!");
-        Connection connection = getConnection(API + "/sessions")
+        Connection connection = getIgnoredConnection(API + "/sessions")
                 .headers(getHeaders())
-                .header("SFSecurity", getSFSecurity(DEFAULT_DEVICE_TOKEN))
+                .header("SFSecurity", getSFSecurity())
                 .data("userName", username)
-                .data("passWord", password)
-                .method(Connection.Method.POST);
+                .data("passWord", password);
         if (timeout > 0) {
             connection.timeout(timeout);
         }
         try {
-            connection.execute();
-        } catch (IOException e) {
+            connect(connection, Connection.Method.POST);
+        } catch (ConnectionException e) {
             e.printStackTrace();
             return false;
         }
@@ -234,7 +246,7 @@ public class SfacgAPI implements API {
             sfacgCacheJson.password = password;
             encrypt(sfacgCacheJson);
             boolean writeRes = FileUtils.writeFile(TextUtils.toPrettyFormat(sfacgCacheJson), sfacgCache);
-            System.out.println("Cookies cache write result: " + writeRes);
+            System.out.println("[INFO] Cookies cache write result: " + writeRes);
         }
         loginStatus = LoginStatus.Login;
         if (loginFlag) {
@@ -301,13 +313,13 @@ public class SfacgAPI implements API {
         if (loginStatus == LoginStatus.UnLogin) {
             throw new IllegalStateException("账号未登录!");
         }
-        Connection connection = getConnection(API + "/user")
+        Connection connection = getIgnoredConnection(API + "/user")
                 .headers(getHeaders())
                 .header("cookie", getCookieValue());
         if (timeout > 0) {
             connection.timeout(timeout);
         }
-        String json = connection.get().body().text();
+        String json = connect(connection, Connection.Method.GET).body().text();
         return getGson().fromJson(json, AccountJson.class);
     }
 
@@ -356,7 +368,7 @@ public class SfacgAPI implements API {
     }
 
     public SearchResultJson search(SearchParams params) throws IOException {
-        Connection connection = getConnection(API + "/search/novels/result/new")
+        Connection connection = getIgnoredConnection(API + "/search/novels/result/new")
                 .headers(getHeaders())
                 .data("expand", "typeName,tags,intro,latestchaptitle,latestchapintro,authorname,authorName,sysTags")
                 .data("page", params.page + "")
@@ -369,7 +381,7 @@ public class SfacgAPI implements API {
         } else if (timeout > 0) {
             connection.timeout(timeout);
         }
-        String json = connection.get().body().text();
+        String json = connect(connection, Connection.Method.GET).body().text();
         return getGson().fromJson(json, SearchResultJson.class);
     }
 
@@ -378,4 +390,11 @@ public class SfacgAPI implements API {
         return NovelSource.SfacgAPP;
     }
 
+    public String getDeviceToken() {
+        return deviceToken;
+    }
+
+    public void setDeviceToken(String deviceToken) {
+        this.deviceToken = deviceToken;
+    }
 }

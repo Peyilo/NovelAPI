@@ -7,22 +7,22 @@ import org.anvei.novel.download.DownloadTask;
 import org.anvei.novel.download.DownloadTasks;
 import org.anvei.novel.utils.NetUtils;
 import org.anvei.novel.utils.SecurityUtils;
-import org.anvei.novel.utils.TextUtils;
 import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Base64;
 
-import static org.anvei.novel.api.hbooker.HbookerSecurity.*;
-
-import static org.anvei.novel.utils.TextUtils.*;
+import static org.anvei.novel.api.hbooker.HbookerSecurity.decrypt;
+import static org.anvei.novel.utils.TextUtils.escapeUTF8;
+import static org.anvei.novel.utils.TextUtils.toPrettyFormat;
 
 public class TestHbookerAPI {
 
@@ -43,7 +43,7 @@ public class TestHbookerAPI {
 
     @Test
     public void testSearch() throws IOException {
-        Connection connection = NetUtils.getConnection(API + "/bookcity/get_filter_search_book_list");
+        Connection connection = NetUtils.getIgnoredConnection(API + "/bookcity/get_filter_search_book_list");
         Document document = connection.data("account", "%E4%B9%A6%E5%AE%A2581134180521")
                 .data("app_version", "3.0.303")
                 .data("device", "iPad")
@@ -105,7 +105,7 @@ public class TestHbookerAPI {
         DivisionInfoJson divisionInfoJson = api.getDivisionInfoJson(100307425);
         // System.out.println(toPrettyFormat(divisionInfoJson));
         if (divisionInfoJson.data.divisionList.size() > 0) {
-            long divisionId = divisionInfoJson.data.divisionList.get(0).divisionId;
+            long divisionId = divisionInfoJson.data.divisionList.get(1).divisionId;
             ChapListInfoJson chapterListInfoJson = api.getChapterListInfoJson(divisionId);
             // System.out.println(toPrettyFormat(chapterListInfoJson));
             // System.out.println(chapterListInfoJson.scrollChests.size());

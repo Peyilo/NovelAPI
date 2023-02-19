@@ -18,6 +18,10 @@ public class Config {
 
     private static Properties appProperties;
 
+    /**
+     * 完成{@link #appProperties}的初始化，并且从文件中读取{@link #HBOOKER_CONFIG_FILE_PATH},
+     * {@link #SFACG_CONFIG_FILE_PATH}的值
+     */
     public static void initAppConfig() throws IOException {
         appProperties = new Properties();
         InputStream is = Config.class.getClassLoader().getResourceAsStream(APP_CONFIG_FILE_PATH);
@@ -60,6 +64,7 @@ public class Config {
         return SFACG_CONFIG_FILE_PATH;
     }
 
+    // 自行指定Sfacg的配置文件路径
     public static void setSfacgConfigFilePath(String sfacgConfigFilePath) {
         SFACG_CONFIG_FILE_PATH = sfacgConfigFilePath;
     }

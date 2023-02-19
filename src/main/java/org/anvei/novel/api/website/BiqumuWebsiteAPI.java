@@ -1,7 +1,7 @@
 package org.anvei.novel.api.website;
 
 import org.anvei.novel.NovelSource;
-import org.anvei.novel.api.API;
+import org.anvei.novel.api.CrawlerAPI;
 import org.anvei.novel.api.website.common.ChapterBean;
 import org.anvei.novel.api.website.common.NovelBean;
 import org.anvei.novel.api.website.biqumu.SearchResultBean;
@@ -17,7 +17,8 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class BiqumuWebsiteAPI implements API {
+@Deprecated
+public class BiqumuWebsiteAPI implements CrawlerAPI {
 
     private static final String API = "http://www.biqumu.com/";
 
