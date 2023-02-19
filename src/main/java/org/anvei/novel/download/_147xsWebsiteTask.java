@@ -13,7 +13,6 @@ import org.anvei.novel.download.beans.Volume;
 import java.io.IOException;
 import java.util.List;
 
-@Deprecated
 public class _147xsWebsiteTask extends DownloadTask {
 
     private static class Holder {

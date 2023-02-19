@@ -2,12 +2,11 @@ package org.anvei.novel.api.website;
 
 import org.anvei.novel.NovelSource;
 import org.anvei.novel.api.RetryableAPI;
+import org.anvei.novel.api.exceptions.ConnectionException;
 import org.anvei.novel.api.website._147xs.SearchResultBean;
 import org.anvei.novel.api.website.common.ChapterBean;
 import org.anvei.novel.api.website.common.NovelBean;
 import org.anvei.novel.api.website.common.NovelStatus;
-import org.anvei.novel.api.exceptions.ConnectionException;
-import org.anvei.novel.utils.NetUtils;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -18,10 +17,34 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-@Deprecated
+/**
+ * TODO: 和{@link BiqegeWebsiteAPI}相比，有大量重复代码，待建立一个统一的模型
+ */
 public class _147xsWebsiteAPI extends RetryableAPI {
 
     private static final String API = "https://www.147xs.org/";
+
+    private static final String DEFAULT_COOKIE = "__gads=ID=3591258f3d6a8a2a-221423120bd90007:T=1672117118:RT=1672117118:S=ALNI_MY-8BiGIVvZrTgbNlapW4iO1Ejyug; cf_clearance=S0wcNagkdGmUk.sp55maFr3Lez_MNswXmVAOXnpG1aw-1676798340-0-250; __gpi=UID=00000b987a2bf523:T=1672117118:RT=1676818067:S=ALNI_MZaglp5i7kqUZbffVDMnMMUi0IrVQ";
+    private static final String DEFAULT_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36";
+
+    private String cookie = DEFAULT_COOKIE;
+    private String UA = DEFAULT_UA;
+
+    public String getCookie() {
+        return cookie;
+    }
+
+    public void setCookie(String cookie) {
+        this.cookie = cookie;
+    }
+
+    public String getUA() {
+        return UA;
+    }
+
+    public void setUA(String UA) {
+        this.UA = UA;
+    }
 
     @Override
     public NovelSource getNovelSource() {
@@ -34,7 +57,8 @@ public class _147xsWebsiteAPI extends RetryableAPI {
      */
     public List<SearchResultBean> search(String keyword) throws IOException, ConnectionException {
         Connection connection = Jsoup.connect(API + "/search.php")
-                .header("User-Agent", NetUtils.getRandomUA())
+                .header("cookie", getCookie())
+                .header("User-Agent", getUA())
                 .data("keyword", keyword);
         Document document = connect(connection, Connection.Method.POST);
         List<SearchResultBean> searchResultBeanList = new ArrayList<>();
@@ -69,7 +93,9 @@ public class _147xsWebsiteAPI extends RetryableAPI {
         if (!url.contains(API)) {
             url = API + url;
         }
-        Connection connection = Jsoup.connect(url).header("User-Agent", NetUtils.getRandomUA());
+        Connection connection = Jsoup.connect(url)
+                .header("cookie", getCookie())
+                .header("User-Agent", getUA());
         Document document = connect(connection, Connection.Method.GET);
         Elements mainInfo = document.select("#maininfo");
         novelBean.novelName = mainInfo.select("#info > h1").text();
@@ -82,12 +108,15 @@ public class _147xsWebsiteAPI extends RetryableAPI {
         novelBean.coverUrl = document.select("#fmimg > img").attr("src");
         // 接下来解析章节目录信息
         Elements elements = document.select("#list > dl > dd > a");
-        for (Element element : elements) {
-            ChapterBean chapterBean = new ChapterBean();
-            chapterBean.chapterName = element.text();
-            chapterBean.url = element.attr("href");
-            novelBean.chapterList.add(chapterBean);
+        for (int i = 0; i < elements.size() - 1; i++) {
+            Element chapListEle = elements.get(i);
+            ChapterBean chap = new ChapterBean();
+            chap.chapterName = chapListEle.text();
+            chap.url = chapListEle.attr("href");
+            novelBean.chapterList.add(chap);
         }
+        // 将最新章节添加进入列表中
+        novelBean.chapterList.add(novelBean.lastChapter);
         return novelBean;
     }
 
@@ -108,7 +137,9 @@ public class _147xsWebsiteAPI extends RetryableAPI {
         if (!url.contains(API)) {
             url = API + url;
         }
-        Connection connection = Jsoup.connect(url).header("User-Agent", NetUtils.getRandomUA());
+        Connection connection = Jsoup.connect(url)
+                .header("cookie", getCookie())
+                .header("User-Agent", getUA());
         Document document = connect(connection, Connection.Method.GET);
         Elements paras = document.select("#content > p");
         StringBuilder builder = new StringBuilder();

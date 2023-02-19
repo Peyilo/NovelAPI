@@ -6,7 +6,7 @@
 
 1. SfacgAPI（菠萝包轻小说）
 2. HbookerAPI（刺猬猫阅读）
-3. BiqumuWebsiteAPI（http://www.biqumu.com/）
+3. BiqegeWebsiteAPI（http://www.biqege.com/）
 4. _143xsWebsiteAPI（https://www.147xs.org/）
 5. FanqieWebsiteAPI（https://fanqienovel.com）
 

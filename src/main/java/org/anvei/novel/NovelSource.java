@@ -7,7 +7,7 @@ public enum NovelSource {
     SfacgAPP,
     HbookerAPP,
     Qidian,
-    BiqumuWebsite,
+    BiqegeWebsite,
     _143xsWebsite,
     FanqieWebsite
 }

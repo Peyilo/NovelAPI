@@ -12,6 +12,10 @@ public class DownloadTasks {
                 return new HbookerTask();
             case FanqieWebsite:
                 return new FanqieWebsiteTask();
+            case BiqegeWebsite:
+                return new BiqegeWebsiteTask();
+            case _143xsWebsite:
+                return new _147xsWebsiteTask();
             default:
                 throw new IllegalArgumentException("暂时不支持该种类型的下载任务!");
         }

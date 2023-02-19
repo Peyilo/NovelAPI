@@ -1,4 +1,4 @@
-package org.anvei.novel.api.website.biqumu;
+package org.anvei.novel.api.website.biqege;
 
 import org.anvei.novel.api.website.common.ChapterBean;
 
